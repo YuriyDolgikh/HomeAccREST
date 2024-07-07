@@ -1,0 +1,205 @@
+package biz.itehnika.homeaccrest.controllers;
+
+import biz.itehnika.homeaccrest.dto.AccountDTO;
+import biz.itehnika.homeaccrest.dto.CustomerDTO;
+import biz.itehnika.homeaccrest.dto.CustomerUpdateDTO;
+import biz.itehnika.homeaccrest.exceptions.AppError;
+import biz.itehnika.homeaccrest.models.Account;
+import biz.itehnika.homeaccrest.models.Customer;
+import biz.itehnika.homeaccrest.models.enums.AccountType;
+import biz.itehnika.homeaccrest.models.enums.CurrencyName;
+import biz.itehnika.homeaccrest.services.AccountService;
+import biz.itehnika.homeaccrest.services.CurrencyService;
+import biz.itehnika.homeaccrest.services.CustomerService;
+import biz.itehnika.homeaccrest.services.PaymentCategoryService;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.userdetails.User;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
+
+import java.security.Principal;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+@Tag(name = "Accounts activity",
+     description = "All Accounts operations are available for customer in context with USERs role")
+@Slf4j
+@RestController
+@RequiredArgsConstructor
+public class AccountController {
+
+    public final AccountService accountService;
+    public final CustomerService customerService;
+    public final PaymentCategoryService paymentCategoryService;
+    public final CurrencyService currencyService;
+ 
+    
+    @Operation(
+        summary = "Get a list of all accounts of the current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200",
+            description = "OK",
+            content =  @Content(mediaType = "application/json",
+                schema = @Schema(
+                    example = "[{\"name\":\"Sparkassa\",\"description\":\"Perfect Red card\",\"type\":\"CARD\",\"currencyName\":\"EUR\"}," +
+                               "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))),
+        @ApiResponse(responseCode = "401",
+            description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+        }
+    )
+    @GetMapping("/accounts")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public List<AccountDTO> accountsList(Principal principal){
+        Customer customer = customerService.findByLogin(principal.getName());
+        List<AccountDTO> accountDTOList = new ArrayList<>();
+        for (Account account : accountService.getAccountsByCustomer(customer)){
+            accountDTOList.add(AccountDTO.of(account));
+        }
+        return accountDTOList;
+    }
+    
+    
+    
+    @Operation(
+        summary = "Add new account for customer",
+        description = "The name of account must be unique"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json") }),
+        @ApiResponse(responseCode = "400", description = "Bad Request",
+            content = { @Content(mediaType = "application/json",
+                schema = @Schema(implementation = AppError.class)) })
+                          }
+                )
+    @PostMapping(value = "/accounts/new")
+    public ResponseEntity<?> newAccount(@Parameter(schema = @Schema(example = "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))
+                                           @RequestBody AccountDTO accountDTO, Principal principal) {
+
+        Map<String, Object> result = new HashMap<>();
+        Customer customer = customerService.findByLogin(principal.getName());
+        
+        if (accountService.getAccountByNameAndCustomer(accountDTO.getName(), customer) != null) {
+            return new ResponseEntity<>(new AppError("Account with specified name for this customer already exists"), HttpStatus.BAD_REQUEST);
+        }
+        accountService.addAccount(accountDTO, customer);
+        return ResponseEntity.ok().build();
+    }
+    
+    
+    
+    @Operation(
+        summary = "Delete accounts for customer by the accounts id's list",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @PostMapping(value = "/accounts/delete")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    public ResponseEntity<HttpStatus> deleteAccounts(@Parameter(schema = @Schema(example = "[12, 133, 13457]"))
+                                                     @RequestBody List<Long> toDeleteList, Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        if (toDeleteList != null && !toDeleteList.isEmpty()) {
+            accountService.deleteAccounts(toDeleteList, customer);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    
+    
+    @Operation(
+        summary = "Delete account by the account id",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @DeleteMapping(value = "/accounts/delete/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<HttpStatus> deleteAccount(@PathVariable("id") Long id , Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        if (id != null) {
+            accountService.deleteAccount(id, customer);
+        }
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
+    
+    
+    @Operation(
+        summary = "Update Account",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json") }),
+        @ApiResponse(responseCode = "400", description = "Bad Request",
+            content = { @Content(mediaType = "application/json",
+                schema = @Schema(implementation = AppError.class)) }),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @PutMapping(value = "/accounts/update/{id}")
+    @PreAuthorize("hasRole('ROLE_USER')")
+    public ResponseEntity<?> updateAccounts (@PathVariable(value = "id") Long id, @RequestBody AccountDTO accountDTO, Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        if(!accountService.existsById(id)){
+            return new ResponseEntity<>(new AppError("Account with specified ID not exists"), HttpStatus.BAD_REQUEST);
+        }else {
+            if (!accountService.getById(id).getCustomer().getId().equals(customer.getId())){
+                return new ResponseEntity<>(new AppError("Account ID is wrong for this customer"), HttpStatus.BAD_REQUEST);
+            }
+        }
+        if (accountService.getAccountByNameAndCustomer(accountDTO.getName(), customer) != null) {
+            return new ResponseEntity<>(new AppError("Account with specified name already exists"), HttpStatus.BAD_REQUEST);
+        }
+        accountService.updateAccount(id, accountDTO);
+        return ResponseEntity.ok(null);
+    }
+
+    
+    @GetMapping("/accounts/statistic")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public String accountsStatistic(Model model){
+        User user = CustomerController.getCurrentUser();
+        Customer customer = customerService.findByLogin(user.getUsername());
+
+        model.addAttribute("accountsUAH", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.UAH, customer));
+        model.addAttribute("accountsEUR", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.EUR, customer));
+        model.addAttribute("accountsUSD", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.USD, customer));
+        model.addAttribute("totalUAH", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.UAH, customer));
+        model.addAttribute("totalEUR", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.EUR, customer));
+        model.addAttribute("totalUSD", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.USD, customer));
+        model.addAttribute("balances", accountService.getAccountBalancesByCustomer(customer));
+
+        return "accountsStatistic";
+    }
+
+}
