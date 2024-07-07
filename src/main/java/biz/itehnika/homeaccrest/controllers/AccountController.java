@@ -1,12 +1,9 @@
 package biz.itehnika.homeaccrest.controllers;
 
 import biz.itehnika.homeaccrest.dto.AccountDTO;
-import biz.itehnika.homeaccrest.dto.CustomerDTO;
-import biz.itehnika.homeaccrest.dto.CustomerUpdateDTO;
 import biz.itehnika.homeaccrest.exceptions.AppError;
 import biz.itehnika.homeaccrest.models.Account;
 import biz.itehnika.homeaccrest.models.Customer;
-import biz.itehnika.homeaccrest.models.enums.AccountType;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import biz.itehnika.homeaccrest.services.AccountService;
 import biz.itehnika.homeaccrest.services.CurrencyService;
@@ -22,7 +19,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -94,7 +90,6 @@ public class AccountController {
     public ResponseEntity<?> newAccount(@Parameter(schema = @Schema(example = "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))
                                            @RequestBody AccountDTO accountDTO, Principal principal) {
 
-        Map<String, Object> result = new HashMap<>();
         Customer customer = customerService.findByLogin(principal.getName());
         
         if (accountService.getAccountByNameAndCustomer(accountDTO.getName(), customer) != null) {

@@ -15,7 +15,7 @@ import java.util.Comparator;
 @NoArgsConstructor
 public class Payment implements Comparator {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private LocalDateTime dateTime;

@@ -148,6 +148,12 @@ public class CustomerService{
                             filters.get("isScheduled"));
         customerRepository.save(customer);
     }
+    
+    @Transactional
+    public void setAdmin(Customer customer){
+        customer.setRole(CustomerRole.ADMIN);
+        customerRepository.save(customer);
+    }
 
     public Map<String, Boolean> translateFiltersToMap(List<String> filtersList){
         Map<String, Boolean> filters = new HashMap<>();

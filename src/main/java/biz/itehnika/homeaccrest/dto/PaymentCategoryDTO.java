@@ -1,11 +1,6 @@
 package biz.itehnika.homeaccrest.dto;
 
-import biz.itehnika.homeaccrest.models.Account;
 import biz.itehnika.homeaccrest.models.PaymentCategory;
-import biz.itehnika.homeaccrest.models.enums.AccountType;
-import biz.itehnika.homeaccrest.models.enums.CurrencyName;
-import jakarta.persistence.EnumType;
-import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

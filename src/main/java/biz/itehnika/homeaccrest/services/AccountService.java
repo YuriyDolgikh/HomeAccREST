@@ -112,7 +112,7 @@ public class AccountService {
     }
 
     @Transactional
-    public boolean updateAccount(Long id, AccountDTO accountDTO) {
+    public void updateAccount(Long id, AccountDTO accountDTO) {
         Account accountToUpdate = getById(id);
 
         accountToUpdate.setName(accountDTO.getName());
@@ -120,7 +120,6 @@ public class AccountService {
         accountToUpdate.setType(accountDTO.getType());
         accountToUpdate.setCurrencyName(accountDTO.getCurrencyName());
         accountRepository.save(accountToUpdate);
-        return true;
     }
 
 

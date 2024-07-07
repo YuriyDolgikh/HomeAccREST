@@ -16,13 +16,17 @@ public class SwaggerConfig {
         return new OpenAPI()
             .servers(
                 List.of(
-                    new Server().url("http://localhost:8080"),
+                    new Server().url("https://acc-rest.itehnika.biz"),
                     new Server().url("https://home-acc-rest-dff398f45658.herokuapp.com"),
-                    new Server().url("https://acc-rest.itehnika.biz")
+                    new Server().url("http://localhost:8080")
                 )
             )
             .info(
-                new Info().title("Home Accounting API")
+                new Info().title("Home Accounting API").description("You need to send Bearer Token from Frontend " +
+                                                                    "in the header of the request. In the request, " +
+                                                                    "put Bearer Token as a key-value pair, where " +
+                                                                    "\"Authorization\" will be the key and the \"Bearer\" " +
+                                                                    "Keyword followed by Bearer Token after a space as value.")
             );
     }
     

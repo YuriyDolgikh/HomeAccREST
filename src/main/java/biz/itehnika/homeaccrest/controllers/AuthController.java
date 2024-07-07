@@ -54,7 +54,7 @@ public class AuthController {
                           }
     )
     @PostMapping("/auth")
-    public ResponseEntity<?> createAuthToken(@Parameter(schema = @Schema(example = "{\"login\":\"userLogin\",\"password\":\"passw\"}", required = true))
+    public ResponseEntity<?> createAuthToken(@Parameter(schema = @Schema(example = "{\"login\":\"userLogin\",\"password\":\"passw\"}"))
                                              @RequestBody JwtRequestDTO authRequest) {
         try {
             authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getLogin(), authRequest.getPassword()));
@@ -79,7 +79,7 @@ public class AuthController {
                           }
     )
     @PostMapping("/registration")
-    public ResponseEntity<?> createNewCustomer(@Parameter(schema = @Schema(example = "{\"login\":\"Bill\",\"password\":\"pass123\",\"confirmPassword\":\"pass123\",\"email\":\"bill@mail.com\"}", required = true))
+    public ResponseEntity<?> createNewCustomer(@Parameter(schema = @Schema(example = "{\"login\":\"Bill\",\"password\":\"pass123\",\"confirmPassword\":\"pass123\",\"email\":\"bill@mail.com\"}"))
                                                @RequestBody CustomerRegistrationDTO customerRegistrationDTO) {
         if (!customerRegistrationDTO.getPassword().equals(customerRegistrationDTO.getConfirmPassword())) {
             return new ResponseEntity<>(new AppError("Passwords do not match"), HttpStatus.BAD_REQUEST);
