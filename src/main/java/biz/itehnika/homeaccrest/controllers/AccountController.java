@@ -4,7 +4,6 @@ import biz.itehnika.homeaccrest.dto.AccountDTO;
 import biz.itehnika.homeaccrest.exceptions.AppError;
 import biz.itehnika.homeaccrest.models.Account;
 import biz.itehnika.homeaccrest.models.Customer;
-import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import biz.itehnika.homeaccrest.services.AccountService;
 import biz.itehnika.homeaccrest.services.CurrencyService;
 import biz.itehnika.homeaccrest.services.CustomerService;
@@ -22,15 +21,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Tag(name = "Accounts activity",
      description = "All Accounts operations are available for customer in context with USERs role")
@@ -179,22 +174,22 @@ public class AccountController {
         return ResponseEntity.ok(null);
     }
 
-    
-    @GetMapping("/accounts/statistic")
-    @PreAuthorize("hasAnyRole('ROLE_USER')")
-    public String accountsStatistic(Model model){
-        User user = CustomerController.getCurrentUser();
-        Customer customer = customerService.findByLogin(user.getUsername());
+// TODO this method must by done after the Payments controller
 
-        model.addAttribute("accountsUAH", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.UAH, customer));
-        model.addAttribute("accountsEUR", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.EUR, customer));
-        model.addAttribute("accountsUSD", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.USD, customer));
-        model.addAttribute("totalUAH", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.UAH, customer));
-        model.addAttribute("totalEUR", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.EUR, customer));
-        model.addAttribute("totalUSD", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.USD, customer));
-        model.addAttribute("balances", accountService.getAccountBalancesByCustomer(customer));
-
-        return "accountsStatistic";
-    }
+//    @GetMapping("/accounts/statistic")
+//    @PreAuthorize("hasAnyRole('ROLE_USER')")
+//    public String accountsStatistic(Principal principal){
+//        Customer customer = customerService.findByLogin(principal.getName());
+//
+//        model.addAttribute("accountsUAH", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.UAH, customer));
+//        model.addAttribute("accountsEUR", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.EUR, customer));
+//        model.addAttribute("accountsUSD", accountService.getAccountsByCurrencyNameAndCustomer(CurrencyName.USD, customer));
+//        model.addAttribute("totalUAH", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.UAH, customer));
+//        model.addAttribute("totalEUR", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.EUR, customer));
+//        model.addAttribute("totalUSD", accountService.getTotalByCurrencyNameAndCustomer(CurrencyName.USD, customer));
+//        model.addAttribute("balances", accountService.getAccountBalancesByCustomer(customer));
+//
+//        return "accountsStatistic";
+//    }
 
 }

@@ -13,8 +13,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import java.time.Duration;
-
 @Configuration
 @EnableMethodSecurity
 @RequiredArgsConstructor

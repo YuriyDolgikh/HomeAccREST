@@ -34,9 +34,7 @@ import java.util.List;
 public class CustomerController {
     private final CustomerService customerService;
     
-    
-    
-    
+  
     @Operation(
         summary = "Get list of all customers",
         description = ""
