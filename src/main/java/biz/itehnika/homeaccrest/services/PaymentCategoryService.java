@@ -1,10 +1,12 @@
 package biz.itehnika.homeaccrest.services;
 
 import biz.itehnika.homeaccrest.config.AppConfig;
+import biz.itehnika.homeaccrest.dto.PaymentCategoryDTO;
 import biz.itehnika.homeaccrest.models.Customer;
 import biz.itehnika.homeaccrest.models.PaymentCategory;
 import biz.itehnika.homeaccrest.repos.CustomerRepository;
 import biz.itehnika.homeaccrest.repos.PaymentCategoryRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,16 +14,12 @@ import java.util.List;
 import java.util.Optional;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentCategoryService {
 
     private final PaymentCategoryRepository paymentCategoryRepository;
     private final CustomerRepository customerRepository;
-
-    public PaymentCategoryService(PaymentCategoryRepository paymentCategoryRepository, CustomerRepository customerRepository) {
-        this.paymentCategoryRepository = paymentCategoryRepository;
-        this.customerRepository = customerRepository;
-    }
-
+    
     @Transactional
     public PaymentCategory getByNameAndCustomer(String name, Customer customer) {
         return paymentCategoryRepository.findPaymentCategoryByNameAndCustomer(name, customer);
@@ -33,18 +31,25 @@ public class PaymentCategoryService {
     }
 
     @Transactional
+    public boolean existsById(Long id){
+        return paymentCategoryRepository.existsById(id);
+    }
+    
+    @Transactional
     public PaymentCategory getById(Long id){
-        return paymentCategoryRepository.findById(id).orElseThrow(); // because <Optional>
+        return paymentCategoryRepository.findById(id).orElseThrow();
     }
 
     @Transactional
-    public boolean addPaymentCategory(String name, String description, Customer customer){
-        if (paymentCategoryRepository.existsPaymentCategoryByNameAndCustomer(name, customer)){
-            return false;
-        }
+    public void addPaymentCategory(PaymentCategoryDTO categoryDTO, Customer customer){
+        PaymentCategory paymentCategory = new PaymentCategory(categoryDTO.getName(), categoryDTO.getDescription(), customer);
+        paymentCategoryRepository.save(paymentCategory);
+    }
+    
+    @Transactional
+    public void addPaymentCategory(String name, String description, Customer customer){
         PaymentCategory paymentCategory = new PaymentCategory(name, description, customer);
         paymentCategoryRepository.save(paymentCategory);
-        return true;
     }
 
     @Transactional
@@ -53,29 +58,65 @@ public class PaymentCategoryService {
 
         List<PaymentCategory> paymentCategories = getPaymentCategoriesByCustomer(customerAdmin);
         for (PaymentCategory category : paymentCategories){
-            addPaymentCategory(category.getName(), category.getDescription(), customer);
+            addPaymentCategory(PaymentCategoryDTO.of(category.getName(), category.getDescription()), customer);
         }
+    }
+    
+    @Transactional
+    public void deletePaymentCategory(Long id, Customer customer) {
+            Optional<PaymentCategory> paymentCategory = paymentCategoryRepository.findById(id);
+            paymentCategory.ifPresent(u -> {
+                if (u.getCustomer().getId().equals(customer.getId())){
+                    paymentCategoryRepository.deleteById(u.getId());
+                }
+            });
     }
 
     @Transactional
-    public void deletePaymentCategories(List<Long> ids) {
+    public void deletePaymentCategories(List<Long> ids, Customer customer) {
         ids.forEach(id -> {
             Optional<PaymentCategory> paymentCategory = paymentCategoryRepository.findById(id);
-            paymentCategory.ifPresent(u -> paymentCategoryRepository.deleteById(u.getId()));
+            paymentCategory.ifPresent(u -> {
+                if (u.getCustomer().getId().equals(customer.getId())){
+                    paymentCategoryRepository.deleteById(u.getId());
+                }
+            });
         });
     }
 
     @Transactional
-    public boolean updatePaymentCategory(Long id, String newName, String newDescription, Customer customer) {
-        PaymentCategory paymentCategoryToUpdate = getById(id);
-        PaymentCategory paymentCategoryToCheck = getByNameAndCustomer(newName, customer);
-        if (paymentCategoryToCheck != null && !paymentCategoryToCheck.getId().equals(id) ){
-            return false;
-        }
-        paymentCategoryToUpdate.setName(newName);
-        paymentCategoryToUpdate.setDescription(newDescription);
-        paymentCategoryRepository.save(paymentCategoryToUpdate);
-        return true;
+    public void updatePaymentCategory(Long id, PaymentCategoryDTO categoryDTO) {
+        PaymentCategory categoryToUpdate = getById(id);
+
+        categoryToUpdate.setName(categoryDTO.getName());
+        categoryToUpdate.setDescription(categoryDTO.getDescription());
+        paymentCategoryRepository.save(categoryToUpdate);
+    }
+    @Transactional
+    public void initForAdmin(){
+        Customer customerAdmin = customerRepository.findCustomerByLogin(AppConfig.ADMIN_LOGIN);
+        addPaymentCategory("DEFAULT", "Default payment category", customerAdmin);
+        addPaymentCategory("SALARY", "Income earned from work", customerAdmin);
+        addPaymentCategory("HEALTH", "Medicines, clinics, food additives ...", customerAdmin);
+        addPaymentCategory("BANK", "Banking operations, payment for banking services", customerAdmin);
+        addPaymentCategory("BEAUTY", "Beauty salons, cosmetics...", customerAdmin);
+        addPaymentCategory("CAR", "Spare parts, fuel, repairs", customerAdmin);
+        addPaymentCategory("CHILDREN", "Schools, kindergartens, entertainment, toys", customerAdmin);
+        addPaymentCategory("GIFT", "Something given or received as a gift", customerAdmin);
+        addPaymentCategory("RESTAURANT", "Restaurants, cafes, bars...", customerAdmin);
+        addPaymentCategory("ENTERTAINMENT", "Clubs, discos, parties", customerAdmin);
+        addPaymentCategory("TRAVEL", "Hotels, tours...", customerAdmin);
+        addPaymentCategory("COMMUNAL PAYMENTS", "Rent and utility costs", customerAdmin);
+        addPaymentCategory("SERVICES", "Services received and rendered", customerAdmin);
+        addPaymentCategory("TICKETS", "Plane, train, bus, ship", customerAdmin);
+        addPaymentCategory("FOOD", "Supermarkets, farmers markets, bakeries", customerAdmin);
+        addPaymentCategory("EQUIPMENTS", "Specialized tools and equipment", customerAdmin);
+        addPaymentCategory("TRANSPORT", "Taxi and public transport costs", customerAdmin);
+        addPaymentCategory("HOUSEHOLD", "Various household appliances, dishes", customerAdmin);
+        addPaymentCategory("HOBBY", "Everything for body and soul", customerAdmin);
+        addPaymentCategory("EXCHANGE", "Exchange currency (don't delete!)", customerAdmin);
+        addPaymentCategory("TRANSFER", "Send money to my another account (don't delete!)", customerAdmin);
+        addPaymentCategory("OTHER", "Other income and expenses", customerAdmin);
     }
 
 }

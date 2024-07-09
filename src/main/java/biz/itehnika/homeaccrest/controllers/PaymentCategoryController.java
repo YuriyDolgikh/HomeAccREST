@@ -1,121 +1,210 @@
 package biz.itehnika.homeaccrest.controllers;
 
 import biz.itehnika.homeaccrest.dto.PaymentCategoryDTO;
+import biz.itehnika.homeaccrest.exceptions.AppError;
 import biz.itehnika.homeaccrest.models.Customer;
-import biz.itehnika.homeaccrest.models.PaymentCategory;
 import biz.itehnika.homeaccrest.services.CustomerService;
 import biz.itehnika.homeaccrest.services.PaymentCategoryService;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.Schema;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.userdetails.User;
-import org.springframework.stereotype.Controller;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.util.List;
 
-@Controller
+@Tag(name = "Payment category activity", description = "")
+@Slf4j
+@RestController
 @RequiredArgsConstructor
 public class PaymentCategoryController {
 
     private final CustomerService customerService;
     private final PaymentCategoryService paymentCategoryService;
     
-    @GetMapping("/PaymentCategoriesList")
-    @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_ADMIN')")
-    public ResponseEntity<List<PaymentCategoryDTO>> getPaymentCategories(Principal principal){
+    
+    @Operation(
+        summary = "Get a list of all payment categories of the current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200",
+            description = "OK",
+            content =  @Content(mediaType = "application/json",
+                schema = @Schema(
+                    example = "[{\"name\":\"HEALTH\",\"description\":\"Medicines, clinics, food additives ...\"}," +
+                        "{\"name\":\"FOOD\",\"description\":\"Supermarkets, farmers markets, bakeries\"}]"))),
+        @ApiResponse(responseCode = "401",
+            description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+        }
+    )
+    @GetMapping("/сategories")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    public ResponseEntity<?> categoriesList(Principal principal){
         Customer customer = customerService.findByLogin(principal.getName());
         List<PaymentCategoryDTO> paymentCategoryDTOList = PaymentCategoryDTO.listOf(paymentCategoryService.getPaymentCategoriesByCustomer(customer));
         return new ResponseEntity<>(paymentCategoryDTOList, HttpStatus.OK);
     }
     
-    @GetMapping("/addNewCategory")
+    
+    @Operation(
+        summary = "Add new payment category for customer",
+        description = "The name of category must be unique"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json") }),
+        @ApiResponse(responseCode = "400", description = "Bad Request",
+            content = { @Content(mediaType = "application/json",
+                schema = @Schema(implementation = AppError.class)) })
+        }
+    )
+    @PostMapping(value = "/categories/new")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public String addNewCategory() {
-        return "addNewCategory";
-    }
+    public ResponseEntity<?> newCategory(@Parameter(schema = @Schema(example = "{\"name\":\"HEALTH\",\"description\":\"Medicines, clinics, food additives ...\"}"))
+                                             @RequestBody PaymentCategoryDTO categoryDTO, Principal principal) {
 
-    @PostMapping(value = "/addNewCategory")
+        Customer customer = customerService.findByLogin(principal.getName());
+        
+        if (paymentCategoryService.getByNameAndCustomer(categoryDTO.getName(), customer) != null) {
+            return new ResponseEntity<>(new AppError("Category with specified name for this customer already exists"), HttpStatus.BAD_REQUEST);
+        }
+        paymentCategoryService.addPaymentCategory(categoryDTO, customer);
+        return ResponseEntity.ok().build();
+    }
+    
+    
+    
+    @Operation(
+        summary = "Delete payment categories for customer by the accounts id's list",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+        }
+    )
+    @PostMapping(value = "/categories/delete")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public String addNewCategory(@RequestParam String name,
-                                 @RequestParam String description,
-                                 Model model) {
-
-        User user = CustomerController.getCurrentUser();
-        Customer customer = customerService.findByLogin(user.getUsername());
-
-        if ( ! paymentCategoryService.addPaymentCategory(name, description, customer)) {
-            model.addAttribute("exists", true);
-            model.addAttribute("name", name);
-            model.addAttribute("description", description);
-            return "addNewCategory";
+    @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
+    public ResponseEntity<HttpStatus> deleteCategories(@Parameter(schema = @Schema(example = "[56, 95, 134]"))
+                                                       @RequestBody List<Long> toDeleteList, Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        if (toDeleteList != null && !toDeleteList.isEmpty()) {
+            paymentCategoryService.deletePaymentCategories(toDeleteList, customer);
         }
-        model.addAttribute("added", true);
-
-        if (CustomerController.isAdmin(user)){
-            return "redirect:/admin";
-        }
-        return "redirect:/settingsCategory";
+        return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    @PostMapping(value = "/deleteCategory")
+    
+    
+    
+    @Operation(
+        summary = "Delete payment category by the category id",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+        }
+    )
+    @DeleteMapping(value = "/categories/delete/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public String deleteCategory(@RequestParam(name = "toDelete", required = false) List<Long> ids, Model model) {
-        if (ids != null && !ids.isEmpty()) {
-            paymentCategoryService.deletePaymentCategories(ids);
+    public ResponseEntity<HttpStatus> deleteCategory(@PathVariable("id") Long id , Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        if (id != null) {
+            paymentCategoryService.deletePaymentCategory(id, customer);
         }
-        User user = CustomerController.getCurrentUser();
-        Customer customer = customerService.findByLogin(user.getUsername());
-        model.addAttribute("categories", paymentCategoryService.getPaymentCategoriesByCustomer(customer));
-
-        if (CustomerController.isAdmin(user)){
-            return "redirect:/admin";
-        }
-        return "redirect:/settingsCategory";
+        return new ResponseEntity<>(HttpStatus.OK);
     }
-
-    @GetMapping("/updateCategory/{id}")
+    
+    
+    
+    @Operation(
+        summary = "Update payment category",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json") }),
+        @ApiResponse(responseCode = "400", description = "Bad Request",
+            content = { @Content(mediaType = "application/json",
+                schema = @Schema(implementation = AppError.class)) }),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @PutMapping("/categories/update/{id}")
     @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_ADMIN')")
-    public String updateCategory(@PathVariable(value = "id") Long id, Model model) {
-        PaymentCategory paymentCategory = paymentCategoryService.getById(id);
-        model.addAttribute("name", paymentCategory.getName());
-        model.addAttribute("description", paymentCategory.getDescription());
-        return "updateCategory";
-    }
-
-    @PostMapping(value = "/updateCategory")
-    @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_ADMIN')")
-    public String updateCategory(@RequestParam() Long id,
-                                 @RequestParam() String name,
-                                 @RequestParam(required = false) String description,
-                                 Model model) {
-        User user = CustomerController.getCurrentUser();
-        Customer customer = customerService.findByLogin(user.getUsername());
-        PaymentCategory paymentCategory = paymentCategoryService.getById(id);
-
-        if ( ! paymentCategoryService.updatePaymentCategory(paymentCategory.getId(), name, description, customer)) {
-            model.addAttribute("exists", true);
-            model.addAttribute("id", paymentCategory.getId());
-            model.addAttribute("name", paymentCategory.getName());
-            model.addAttribute("description", paymentCategory.getDescription());
+    public ResponseEntity<?> updateCategiry (@PathVariable(value = "id") Long id,
+                                             @RequestBody PaymentCategoryDTO categoryDTO, Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        if(!paymentCategoryService.existsById(id)){
+            return new ResponseEntity<>(new AppError("Category with specified ID not exists"), HttpStatus.BAD_REQUEST);
+        }else {
+            if (!paymentCategoryService.getById(id).getCustomer().getId().equals(customer.getId())){
+                return new ResponseEntity<>(new AppError("Category ID is wrong for this customer"), HttpStatus.BAD_REQUEST);
+            }
         }
-        if (CustomerController.isAdmin(user)){
-            return "redirect:/admin";
+        if (paymentCategoryService.getByNameAndCustomer(categoryDTO.getName(), customer) != null) {
+            return new ResponseEntity<>(new AppError("Category with specified name already exists"), HttpStatus.BAD_REQUEST);
         }
-        return "redirect:/settingsCategory";
+        paymentCategoryService.updatePaymentCategory(id, categoryDTO);
+        return ResponseEntity.ok(null);
     }
-
-    @GetMapping(value = "/initCategories")
-    @PreAuthorize("hasAnyRole('ROLE_USER', 'ROLE_ADMIN')")
-    public String initCategories(Model model){
-        Customer customer = customerService.findByLogin(CustomerController.getCurrentUser().getUsername());
+    
+    
+    
+    @Operation(
+        summary = "Initialisation payment categories for current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @GetMapping(value = "/categories/init")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public ResponseEntity<?> initCategories(Principal principal){
+        Customer customer = customerService.findByLogin(principal.getName());
         paymentCategoryService.initPaymentCategoriesForCustomer(customer);
-        model.addAttribute("paymentCategories", paymentCategoryService.getPaymentCategoriesByCustomer(customer));
-        model.addAttribute("updated", true);
-        return "settingsCategory";
+        return ResponseEntity.ok().build();
+    }
+    
+    
+    @Operation(
+        summary = "Initialisation payment categories for ADMIN",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = { @Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @GetMapping(value = "/categories/init/admin")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
+    public ResponseEntity<?> initAdminsCategories(Principal principal){
+        paymentCategoryService.initForAdmin();
+        return ResponseEntity.ok().build();
     }
 
 }

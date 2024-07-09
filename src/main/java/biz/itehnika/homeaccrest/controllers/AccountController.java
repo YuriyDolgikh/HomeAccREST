@@ -143,7 +143,7 @@ public class AccountController {
     
     
     @Operation(
-        summary = "Update Account",
+        summary = "Update account",
         description = ""
     )
     @ApiResponses(value = {
@@ -158,7 +158,8 @@ public class AccountController {
     )
     @PutMapping(value = "/accounts/update/{id}")
     @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<?> updateAccounts (@PathVariable(value = "id") Long id, @RequestBody AccountDTO accountDTO, Principal principal) {
+    public ResponseEntity<?> updateAccount (@PathVariable(value = "id") Long id,
+                                            @RequestBody AccountDTO accountDTO, Principal principal) {
         Customer customer = customerService.findByLogin(principal.getName());
         if(!accountService.existsById(id)){
             return new ResponseEntity<>(new AppError("Account with specified ID not exists"), HttpStatus.BAD_REQUEST);

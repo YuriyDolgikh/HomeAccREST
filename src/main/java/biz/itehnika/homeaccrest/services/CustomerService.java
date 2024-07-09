@@ -21,13 +21,22 @@ import java.util.*;
 @RequiredArgsConstructor
 public class CustomerService{
     private final CustomerRepository customerRepository;
-    private final PaymentCategoryService paymentCategoryService;
+    private PaymentCategoryService paymentCategoryService;
     private PasswordEncoder passwordEncoder;
+    
+    
+    
+    
+    @Autowired
+    public void setPaymentCategoryService(PaymentCategoryService paymentCategoryService) {
+        this.paymentCategoryService = paymentCategoryService;
+    }
     
     @Autowired
     public void setPasswordEncoder(PasswordEncoder passwordEncoder) {
         this.passwordEncoder = passwordEncoder;
     }
+    
     
     
     @Transactional(readOnly = true)

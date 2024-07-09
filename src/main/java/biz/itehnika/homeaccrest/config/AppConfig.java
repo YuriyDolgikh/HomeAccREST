@@ -2,7 +2,6 @@ package biz.itehnika.homeaccrest.config;
 
 import biz.itehnika.homeaccrest.dto.CustomerRegistrationDTO;
 import biz.itehnika.homeaccrest.models.Customer;
-import biz.itehnika.homeaccrest.models.enums.CustomerRole;
 import biz.itehnika.homeaccrest.services.CurrencyService;
 import biz.itehnika.homeaccrest.services.CustomerService;
 import lombok.RequiredArgsConstructor;
