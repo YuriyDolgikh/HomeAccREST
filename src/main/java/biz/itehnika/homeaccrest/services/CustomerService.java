@@ -1,6 +1,8 @@
 package biz.itehnika.homeaccrest.services;
 
 import biz.itehnika.homeaccrest.config.AppConfig;
+import biz.itehnika.homeaccrest.dto.CustomerFiltersDTO;
+import biz.itehnika.homeaccrest.dto.CustomerPeriodDTO;
 import biz.itehnika.homeaccrest.dto.CustomerRegistrationDTO;
 import biz.itehnika.homeaccrest.dto.CustomerUpdateDTO;
 import biz.itehnika.homeaccrest.models.Customer;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
@@ -24,7 +27,8 @@ public class CustomerService{
     private PaymentCategoryService paymentCategoryService;
     private PasswordEncoder passwordEncoder;
     
-    
+    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+    final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     
     
     @Autowired
@@ -109,9 +113,7 @@ public class CustomerService{
     }
 
     @Transactional(readOnly = true)
-    public Map<String, LocalDate> getWorkPeriod(Long customerId){
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
-        Map<String, LocalDate> period = new HashMap<>();
+    public CustomerPeriodDTO getActivePeriod(Customer customer){
         LocalDate startDate = customer.getStartDate();
         LocalDate endDate = customer.getEndDate();
         if (startDate == null) {
@@ -120,41 +122,41 @@ public class CustomerService{
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        period.put("startDate", startDate);
-        period.put("endDate", endDate);
-        return period;
+        String startDateStr = startDate.format(dateFormatter); // TODO - for DEBUG
+        String endDateStr = endDate.format(dateFormatter);     // TODO - for DEBUG
+        
+        return CustomerPeriodDTO.of(startDate.format(dateFormatter), endDate.format(dateFormatter));
     }
 
     @Transactional
-    public void setWorkPeriod(Long customerId, LocalDate startDate, LocalDate endDate){
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
-        if (startDate == null) {
-            startDate = LocalDate.now();
-        }
-        if (endDate == null) {
-            endDate = LocalDate.now();
-        }
-        customer.setStartDate(startDate);
-        customer.setEndDate(endDate);
+    public void setActivePeriod(CustomerPeriodDTO customerPeriodDTO, Customer customer){
+
+        customer.setStartDate(LocalDate.parse(customerPeriodDTO.getStartDate(), dateFormatter));
+        customer.setEndDate(LocalDate.parse(customerPeriodDTO.getEndDate(), dateFormatter));
         customerRepository.save(customer);
     }
 
     @Transactional(readOnly = true)
-    public Map<String, Boolean> getFilters(Long customerId){
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
-        return customer.getFilters();
+    public CustomerFiltersDTO getFilters(Customer customer){
+        return CustomerFiltersDTO.of(customer.getIsUAH(),
+                                     customer.getIsEUR(),
+                                     customer.getIsUSD(),
+                                     customer.getIsIN(),
+                                     customer.getIsOUT(),
+                                     customer.getIsCompleted(),
+                                     customer.getIsScheduled()
+                                    );
     }
 
     @Transactional
-    public void setFilter(Long customerId, Map<String, Boolean> filters){
-        Customer customer = customerRepository.findById(customerId).orElseThrow();
-        customer.setFilters(filters.get("isUAH"),
-                            filters.get("isEUR"),
-                            filters.get("isUSD"),
-                            filters.get("isIN"),
-                            filters.get("isOUT"),
-                            filters.get("isCompleted"),
-                            filters.get("isScheduled"));
+    public void setFilter(CustomerFiltersDTO customerFiltersDTO, Customer customer){
+        customer.setFilters(customerFiltersDTO.getIsUAH(),
+                            customerFiltersDTO.getIsEUR(),
+                            customerFiltersDTO.getIsUSD(),
+                            customerFiltersDTO.getIsIN(),
+                            customerFiltersDTO.getIsOUT(),
+                            customerFiltersDTO.getIsCompleted(),
+                            customerFiltersDTO.getIsScheduled());
         customerRepository.save(customer);
     }
     
@@ -164,19 +166,19 @@ public class CustomerService{
         customerRepository.save(customer);
     }
 
-    public Map<String, Boolean> translateFiltersToMap(List<String> filtersList){
-        Map<String, Boolean> filters = new HashMap<>();
-
-        filters.put("isUAH", filtersList.contains("UAH"));
-        filters.put("isEUR", filtersList.contains("EUR"));
-        filters.put("isUSD", filtersList.contains("USD"));
-        filters.put("isIN", filtersList.contains("IN"));
-        filters.put("isOUT", filtersList.contains("OUT"));
-        filters.put("isCompleted", filtersList.contains("Completed"));
-        filters.put("isScheduled", filtersList.contains("Scheduled"));
-
-        return filters;
-    }
+//    public Map<String, Boolean> translateFiltersToMap(List<String> filtersList){
+//        Map<String, Boolean> filters = new HashMap<>();
+//
+//        filters.put("isUAH", filtersList.contains("UAH"));
+//        filters.put("isEUR", filtersList.contains("EUR"));
+//        filters.put("isUSD", filtersList.contains("USD"));
+//        filters.put("isIN", filtersList.contains("IN"));
+//        filters.put("isOUT", filtersList.contains("OUT"));
+//        filters.put("isCompleted", filtersList.contains("Completed"));
+//        filters.put("isScheduled", filtersList.contains("Scheduled"));
+//
+//        return filters;
+//    }
 
     public static String getCustomerDateTime(){
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");

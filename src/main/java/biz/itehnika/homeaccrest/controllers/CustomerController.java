@@ -1,6 +1,8 @@
 package biz.itehnika.homeaccrest.controllers;
 
 import biz.itehnika.homeaccrest.dto.CustomerDTO;
+import biz.itehnika.homeaccrest.dto.CustomerFiltersDTO;
+import biz.itehnika.homeaccrest.dto.CustomerPeriodDTO;
 import biz.itehnika.homeaccrest.dto.CustomerUpdateDTO;
 import biz.itehnika.homeaccrest.exceptions.AppError;
 import biz.itehnika.homeaccrest.models.Customer;
@@ -23,6 +25,9 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
+import java.security.Principal;
+import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -34,7 +39,9 @@ import java.util.List;
 public class CustomerController {
     private final CustomerService customerService;
     
-  
+    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+    final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    
     @Operation(
         summary = "Get list of all customers",
         description = ""
@@ -138,8 +145,133 @@ public class CustomerController {
         customerService.updateCustomer(id, customerUpdateDTO);
         return ResponseEntity.ok(null);
     }
+    
+    
+    @Operation(
+        summary = "Getting Active work period for current customer",
+        description = "String date format: \"dd-MM-yyyy\" (\"08-02-2024\")"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = {@Content(mediaType = "application/json",
+                schema = @Schema(implementation = CustomerPeriodDTO.class))}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = {@Content(mediaType = "application/json")})
+    }
+    )
+    @GetMapping(value = "/period")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public ResponseEntity<CustomerPeriodDTO> getActivePeriod(Principal principal) {
+        
+        Customer customer = customerService.findByLogin(principal.getName());
+        return ResponseEntity.ok(customerService.getActivePeriod(customer));
+        
+    }
+    
+    @Operation(
+        summary = "Setting active work period for current customer",
+        description = "String date format: \"dd-MM-yyyy\" (\"08-02-2024\")"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = {@Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = {@Content(mediaType = "application/json")})
+    }
+    )
+    @PostMapping(value = "/period")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public ResponseEntity<Void> setActivePeriod(@RequestBody CustomerPeriodDTO customerPeriodDTO, Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        customerService.setActivePeriod(customerPeriodDTO, customer);
 
-    static User getCurrentUser() {
+        return ResponseEntity.ok().build();
+    }
+    
+    @Operation(
+        summary = "Set TODAY as active work period for current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = {@Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = {@Content(mediaType = "application/json")})
+    }
+    )
+    @GetMapping(value = "/period/today")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public ResponseEntity<Void> setActivePeriodToday(Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        String today = LocalDate.now().format(dateFormatter);
+        customerService.setActivePeriod(CustomerPeriodDTO.of(today, today), customer);
+        return ResponseEntity.ok().build();
+    }
+    
+    @Operation(
+        summary = "Set THIS MONTH as active work period for current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = {@Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = {@Content(mediaType = "application/json")})
+    }
+    )
+    @GetMapping(value = "/period/month")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public ResponseEntity<Void> setActivePeriodMonth(Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        String startDay = LocalDate.now().withDayOfMonth(1).format(dateFormatter);
+        String endDay = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).format(dateFormatter);
+        customerService.setActivePeriod(CustomerPeriodDTO.of(startDay, endDay), customer);
+        return ResponseEntity.ok().build();
+    }
+    
+    
+    @Operation(
+        summary = "Getting filters for showing payments for current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = {@Content(mediaType = "application/json",
+                schema = @Schema(implementation = CustomerFiltersDTO.class))}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = {@Content(mediaType = "application/json")})
+    }
+    )
+    @GetMapping(value = "/filters")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public ResponseEntity<CustomerFiltersDTO> getFilters(Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        CustomerFiltersDTO filtersDTO = customerService.getFilters(customer);
+
+        return ResponseEntity.ok(filtersDTO);
+    }
+    
+    
+    @Operation(
+        summary = "Setting filters for showing payments for current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "OK",
+            content = {@Content(mediaType = "application/json")}),
+        @ApiResponse(responseCode = "401", description = "Unauthorized",
+            content = {@Content(mediaType = "application/json")})
+    }
+    )
+    @PostMapping(value = "/filters")
+    @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_ADMIN')")
+    public ResponseEntity<Void> setFilters(@RequestBody CustomerFiltersDTO customerFiltersDTO, Principal principal) {
+        Customer customer = customerService.findByLogin(principal.getName());
+        customerService.setFilter(customerFiltersDTO, customer);
+        return ResponseEntity.ok().build();
+    }
+    
+     static User getCurrentUser() {
         return (User)SecurityContextHolder
                 .getContext()
                 .getAuthentication()

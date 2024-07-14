@@ -138,7 +138,7 @@ public class AccountController {
         if (id != null) {
             accountService.deleteAccount(id, customer);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
     
     

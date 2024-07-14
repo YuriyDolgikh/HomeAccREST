@@ -1,5 +1,7 @@
 package biz.itehnika.homeaccrest.services;
 
+import biz.itehnika.homeaccrest.dto.CustomerFiltersDTO;
+import biz.itehnika.homeaccrest.dto.CustomerPeriodDTO;
 import biz.itehnika.homeaccrest.models.*;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import biz.itehnika.homeaccrest.repos.PaymentRepository;
@@ -29,13 +31,18 @@ public class PaymentService {
         return paymentRepository.findById(id).orElseThrow();
     }
 
+//    @Transactional
+//    public CustomerPeriodDTO getActivePeriod(Customer customer){
+//        return null;
+//    }
+    
     @Transactional(readOnly = true)
-    public List<Payment> getAllPaymentsByCustomerAndCurrencyName(Customer customer, CurrencyName currencyName){
+    public List<Payment> getAllPaymentsByCurrencyName(Customer customer, CurrencyName currencyName){
         return paymentRepository.findByCustomerAndCurrencyName(customer, currencyName);
     }
 
     @Transactional(readOnly = true)
-    public List<Payment> getPaymentsByCustomerAndPeriod(Customer customer, LocalDate startDate, LocalDate endDate){
+    public List<Payment> getAllPaymentsPeriod(Customer customer, LocalDate startDate, LocalDate endDate){
         return paymentRepository.findByCustomerAndDateTimeBetweenOrderByDateTime(customer,
                                               LocalDateTime.of(startDate, LocalTime.MIN),
                                               LocalDateTime.of(endDate, LocalTime.MAX));
@@ -43,20 +50,20 @@ public class PaymentService {
 
     @Transactional(readOnly = true)
     public List<Payment> getPaymentsByCustomerAndAllFilters(Customer customer){
-        Map<String, Boolean> filters = customerService.getFilters(customer.getId());
-        Map<String, LocalDate> workPeriod = customerService.getWorkPeriod(customer.getId());
+        CustomerFiltersDTO customerFiltersDTO = customerService.getFilters(customer);
+        CustomerPeriodDTO activePeriod = customerService.getActivePeriod(customer);
         List<CurrencyName> currencyNames = new ArrayList<>();
         List<Boolean> directions = new ArrayList<>();
         List<Boolean> statuses = new ArrayList<>();
-        if (filters.get("isUAH")) currencyNames.add(CurrencyName.UAH);
-        if (filters.get("isEUR")) currencyNames.add(CurrencyName.EUR);
-        if (filters.get("isUSD")) currencyNames.add(CurrencyName.USD);
-        if (filters.get("isIN")) directions.add(true);
-        if (filters.get("isOUT")) directions.add(false);
-        if (filters.get("isCompleted")) statuses.add(true);
-        if (filters.get("isScheduled")) statuses.add(false);
-        LocalDate startDate = workPeriod.get("startDate");
-        LocalDate endDate = workPeriod.get("endDate");
+//        if (filters.get("isUAH")) currencyNames.add(CurrencyName.UAH); //TODO Rewrite
+//        if (filters.get("isEUR")) currencyNames.add(CurrencyName.EUR);
+//        if (filters.get("isUSD")) currencyNames.add(CurrencyName.USD);
+//        if (filters.get("isIN")) directions.add(true);
+//        if (filters.get("isOUT")) directions.add(false);
+//        if (filters.get("isCompleted")) statuses.add(true);
+//        if (filters.get("isScheduled")) statuses.add(false);
+        LocalDate startDate = LocalDate.parse(activePeriod.getStartDate());
+        LocalDate endDate = LocalDate.parse(activePeriod.getEndDate());
 
         return paymentRepository.findByCustomerAndCurrencyNameInAndDirectionInAndStatusInAndDateTimeBetweenOrderByDateTimeAsc(
                                                     customer,
@@ -148,7 +155,7 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public Double getTotalSumByCurrency(Customer customer, CurrencyName currencyName){
         Double totalSum = 0.0;
-        List<Payment> payments = getAllPaymentsByCustomerAndCurrencyName(customer, currencyName);
+        List<Payment> payments = getAllPaymentsByCurrencyName(customer, currencyName);
         for (Payment payment : payments){
             if (payment.getDirection()){
                 totalSum += payment.getAmount();
@@ -177,7 +184,7 @@ public class PaymentService {
     @Transactional(readOnly = true)
     public Double getDailySumByCurrency(Customer customer, CurrencyName currencyName){
         Double dailySum = 0.0;
-        List<Payment> payments = getPaymentsByCustomerAndPeriod(customer, LocalDate.now(), LocalDate.now());
+        List<Payment> payments = getAllPaymentsPeriod(customer, LocalDate.now(), LocalDate.now());
         for (Payment payment : payments){
             if (payment.getCurrencyName().equals(currencyName)){
                 if (payment.getDirection()){

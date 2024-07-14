@@ -7,9 +7,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 
 @Entity
@@ -75,17 +73,17 @@ public class Customer {
                      null);
     }
 
-    public Map<String, Boolean> getFilters(){
-        Map<String, Boolean> filters = new HashMap<>();
-        filters.put("isUAH", isUAH);
-        filters.put("isEUR", isEUR);
-        filters.put("isUSD", isUSD);
-        filters.put("isIN", isIN);
-        filters.put("isOUT", isOUT);
-        filters.put("isCompleted", isCompleted);
-        filters.put("isScheduled", isScheduled);
-        return filters;
-    }
+//    public Map<String, Boolean> getFilters(){
+//        Map<String, Boolean> filters = new HashMap<>();
+//        filters.put("isUAH", isUAH);
+//        filters.put("isEUR", isEUR);
+//        filters.put("isUSD", isUSD);
+//        filters.put("isIN", isIN);
+//        filters.put("isOUT", isOUT);
+//        filters.put("isCompleted", isCompleted);
+//        filters.put("isScheduled", isScheduled);
+//        return filters;
+//    }
 
     public void setFilters(Boolean isUAH,
                            Boolean isEUR,
