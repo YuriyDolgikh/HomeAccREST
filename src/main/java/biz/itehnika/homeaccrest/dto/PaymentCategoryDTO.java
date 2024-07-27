@@ -13,17 +13,18 @@ import java.util.List;
 @AllArgsConstructor
 public class PaymentCategoryDTO {
 
+    private Long id;
     private String name;
     private String description;
 
-    public static PaymentCategoryDTO of(String name, String description){
-        return new PaymentCategoryDTO(name, description);
+    public static PaymentCategoryDTO of(Long id, String name, String description){
+        return new PaymentCategoryDTO(id, name, description);
     }
 
     public static List<PaymentCategoryDTO> listOf(List<PaymentCategory> paymentCategories) {
         List<PaymentCategoryDTO> paymentCategoryDTOList = new ArrayList<>();
         for(PaymentCategory category : paymentCategories){
-            paymentCategoryDTOList.add(of(category.getName(), category.getDescription()));
+            paymentCategoryDTOList.add(of(category.getId(), category.getName(), category.getDescription()));
         }
         return paymentCategoryDTOList;
     }

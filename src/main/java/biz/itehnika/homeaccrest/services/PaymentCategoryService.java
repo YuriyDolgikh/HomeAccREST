@@ -1,7 +1,7 @@
 package biz.itehnika.homeaccrest.services;
 
 import biz.itehnika.homeaccrest.config.AppConfig;
-import biz.itehnika.homeaccrest.dto.PaymentCategoryDTO;
+import biz.itehnika.homeaccrest.dto.PaymentCategoryCreateUpdateDTO;
 import biz.itehnika.homeaccrest.models.Customer;
 import biz.itehnika.homeaccrest.models.PaymentCategory;
 import biz.itehnika.homeaccrest.repos.CustomerRepository;
@@ -41,8 +41,10 @@ public class PaymentCategoryService {
     }
 
     @Transactional
-    public void addPaymentCategory(PaymentCategoryDTO categoryDTO, Customer customer){
-        PaymentCategory paymentCategory = new PaymentCategory(categoryDTO.getName(), categoryDTO.getDescription(), customer);
+    public void addPaymentCategory(PaymentCategoryCreateUpdateDTO categoryCreateUpdateDTO, Customer customer){
+        PaymentCategory paymentCategory = new PaymentCategory(categoryCreateUpdateDTO.getName(),
+                                                              categoryCreateUpdateDTO.getDescription(),
+                                                              customer);
         paymentCategoryRepository.save(paymentCategory);
     }
     
@@ -58,7 +60,7 @@ public class PaymentCategoryService {
 
         List<PaymentCategory> paymentCategories = getPaymentCategoriesByCustomer(customerAdmin);
         for (PaymentCategory category : paymentCategories){
-            addPaymentCategory(PaymentCategoryDTO.of(category.getName(), category.getDescription()), customer);
+            addPaymentCategory(PaymentCategoryCreateUpdateDTO.of(category.getName(), category.getDescription()), customer);
         }
     }
     
@@ -85,13 +87,14 @@ public class PaymentCategoryService {
     }
 
     @Transactional
-    public void updatePaymentCategory(Long id, PaymentCategoryDTO categoryDTO) {
+    public void updatePaymentCategory(Long id, PaymentCategoryCreateUpdateDTO categoryCreateUpdateDTO) {
         PaymentCategory categoryToUpdate = getById(id);
 
-        categoryToUpdate.setName(categoryDTO.getName());
-        categoryToUpdate.setDescription(categoryDTO.getDescription());
+        categoryToUpdate.setName(categoryCreateUpdateDTO.getName());
+        categoryToUpdate.setDescription(categoryCreateUpdateDTO.getDescription());
         paymentCategoryRepository.save(categoryToUpdate);
     }
+    
     @Transactional
     public void initForAdmin(){
         Customer customerAdmin = customerRepository.findCustomerByLogin(AppConfig.ADMIN_LOGIN);

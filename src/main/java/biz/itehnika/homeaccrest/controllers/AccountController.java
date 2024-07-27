@@ -1,9 +1,11 @@
 package biz.itehnika.homeaccrest.controllers;
 
+import biz.itehnika.homeaccrest.dto.AccountCreateUpdateDTO;
 import biz.itehnika.homeaccrest.dto.AccountDTO;
 import biz.itehnika.homeaccrest.exceptions.AppError;
 import biz.itehnika.homeaccrest.models.Account;
 import biz.itehnika.homeaccrest.models.Customer;
+import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import biz.itehnika.homeaccrest.services.AccountService;
 import biz.itehnika.homeaccrest.services.CurrencyService;
 import biz.itehnika.homeaccrest.services.CustomerService;
@@ -41,7 +43,7 @@ public class AccountController {
  
     
     @Operation(
-        summary = "Get a list of all accounts of the current customer",
+        summary = "Get a list of all accounts for the current customer",
         description = ""
     )
     @ApiResponses(value = {
@@ -49,8 +51,8 @@ public class AccountController {
             description = "OK",
             content =  @Content(mediaType = "application/json",
                 schema = @Schema(
-                    example = "[{\"name\":\"Sparkassa\",\"description\":\"Perfect Red card\",\"type\":\"CARD\",\"currencyName\":\"EUR\"}," +
-                               "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))),
+                    example = "[{\"id\":34,\"name\":\"Sparkassa\",\"description\":\"Perfect Red card\",\"type\":\"CARD\",\"currencyName\":\"EUR\"}," +
+                               "{\"id\":895,\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))),
         @ApiResponse(responseCode = "401",
             description = "Unauthorized",
             content = { @Content(mediaType = "application/json") })
@@ -82,15 +84,16 @@ public class AccountController {
                           }
                 )
     @PostMapping(value = "/accounts/new")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<?> newAccount(@Parameter(schema = @Schema(example = "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))
-                                           @RequestBody AccountDTO accountDTO, Principal principal) {
+                                           @RequestBody AccountCreateUpdateDTO accountCreateUpdateDTO, Principal principal) {
 
         Customer customer = customerService.findByLogin(principal.getName());
         
-        if (accountService.getAccountByNameAndCustomer(accountDTO.getName(), customer) != null) {
+        if (accountService.getAccountByNameAndCustomer(accountCreateUpdateDTO.getName(), customer) != null) {
             return new ResponseEntity<>(new AppError("Account with specified name for this customer already exists"), HttpStatus.BAD_REQUEST);
         }
-        accountService.addAccount(accountDTO, customer);
+        accountService.addAccount(accountCreateUpdateDTO, customer);
         return ResponseEntity.ok().build();
     }
     
@@ -159,7 +162,7 @@ public class AccountController {
     @PutMapping(value = "/accounts/update/{id}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateAccount (@PathVariable(value = "id") Long id,
-                                            @RequestBody AccountDTO accountDTO, Principal principal) {
+                                            @RequestBody AccountCreateUpdateDTO accountCreateUpdateDTO, Principal principal) {
         Customer customer = customerService.findByLogin(principal.getName());
         if(!accountService.existsById(id)){
             return new ResponseEntity<>(new AppError("Account with specified ID not exists"), HttpStatus.BAD_REQUEST);
@@ -168,10 +171,10 @@ public class AccountController {
                 return new ResponseEntity<>(new AppError("Account ID is wrong for this customer"), HttpStatus.BAD_REQUEST);
             }
         }
-        if (accountService.getAccountByNameAndCustomer(accountDTO.getName(), customer) != null) {
+        if (accountService.getAccountByNameAndCustomer(accountCreateUpdateDTO.getName(), customer) != null) {
             return new ResponseEntity<>(new AppError("Account with specified name already exists"), HttpStatus.BAD_REQUEST);
         }
-        accountService.updateAccount(id, accountDTO);
+        accountService.updateAccount(id, accountCreateUpdateDTO);
         return ResponseEntity.ok(null);
     }
 

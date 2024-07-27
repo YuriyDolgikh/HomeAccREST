@@ -2,122 +2,137 @@ package biz.itehnika.homeaccrest.services;
 
 import biz.itehnika.homeaccrest.dto.CustomerFiltersDTO;
 import biz.itehnika.homeaccrest.dto.CustomerPeriodDTO;
+import biz.itehnika.homeaccrest.dto.PaymentCreateUpdateDTO;
 import biz.itehnika.homeaccrest.models.*;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import biz.itehnika.homeaccrest.repos.PaymentRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 @Service
+@RequiredArgsConstructor
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final CustomerService customerService;
     private final PaymentCategoryService paymentCategoryService;
-
-    public PaymentService(PaymentRepository paymentRepository, CustomerService customerService, PaymentCategoryService paymentCategoryService) {
-        this.paymentRepository = paymentRepository;
-        this.customerService = customerService;
-        this.paymentCategoryService = paymentCategoryService;
-    }
-
+    
+    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
+    final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
+    private final AccountService accountService;
+    
     @Transactional(readOnly = true)
     public Payment getById(Long id){
         return paymentRepository.findById(id).orElseThrow();
     }
-
-//    @Transactional
-//    public CustomerPeriodDTO getActivePeriod(Customer customer){
-//        return null;
-//    }
     
     @Transactional(readOnly = true)
-    public List<Payment> getAllPaymentsByCurrencyName(Customer customer, CurrencyName currencyName){
+    public boolean existsById(Long id){
+        return paymentRepository.existsById(id);
+    }
+
+   
+    @Transactional(readOnly = true)
+    public List<Payment> getAllPaymentsByCurrencyName(CurrencyName currencyName, Customer customer){
         return paymentRepository.findByCustomerAndCurrencyName(customer, currencyName);
     }
 
     @Transactional(readOnly = true)
-    public List<Payment> getAllPaymentsPeriod(Customer customer, LocalDate startDate, LocalDate endDate){
+    public List<Payment> getAllPaymentsByPeriod(CustomerPeriodDTO customerPeriodDTO, Customer customer){
         return paymentRepository.findByCustomerAndDateTimeBetweenOrderByDateTime(customer,
-                                              LocalDateTime.of(startDate, LocalTime.MIN),
-                                              LocalDateTime.of(endDate, LocalTime.MAX));
+                                              LocalDateTime.of(LocalDate.parse(customerPeriodDTO.getStartDate(), dateFormatter), LocalTime.MIN),
+                                              LocalDateTime.of(LocalDate.parse(customerPeriodDTO.getEndDate(), dateFormatter), LocalTime.MAX));
     }
 
     @Transactional(readOnly = true)
     public List<Payment> getPaymentsByCustomerAndAllFilters(Customer customer){
         CustomerFiltersDTO customerFiltersDTO = customerService.getFilters(customer);
-        CustomerPeriodDTO activePeriod = customerService.getActivePeriod(customer);
+        CustomerPeriodDTO customerPeriodDTO = customerService.getActivePeriod(customer);
         List<CurrencyName> currencyNames = new ArrayList<>();
         List<Boolean> directions = new ArrayList<>();
         List<Boolean> statuses = new ArrayList<>();
-//        if (filters.get("isUAH")) currencyNames.add(CurrencyName.UAH); //TODO Rewrite
-//        if (filters.get("isEUR")) currencyNames.add(CurrencyName.EUR);
-//        if (filters.get("isUSD")) currencyNames.add(CurrencyName.USD);
-//        if (filters.get("isIN")) directions.add(true);
-//        if (filters.get("isOUT")) directions.add(false);
-//        if (filters.get("isCompleted")) statuses.add(true);
-//        if (filters.get("isScheduled")) statuses.add(false);
-        LocalDate startDate = LocalDate.parse(activePeriod.getStartDate());
-        LocalDate endDate = LocalDate.parse(activePeriod.getEndDate());
+        if (customerFiltersDTO.getIsUAH()) currencyNames.add(CurrencyName.UAH); //TODO Rewrite
+        if (customerFiltersDTO.getIsEUR()) currencyNames.add(CurrencyName.EUR);
+        if (customerFiltersDTO.getIsUSD()) currencyNames.add(CurrencyName.USD);
+        if (customerFiltersDTO.getIsIN()) directions.add(true);
+        if (customerFiltersDTO.getIsOUT()) directions.add(false);
+        if (customerFiltersDTO.getIsCompleted()) statuses.add(true);
+        if (customerFiltersDTO.getIsScheduled()) statuses.add(false);
+        LocalDateTime startDateTime = LocalDateTime.of(LocalDate.parse(customerPeriodDTO.getStartDate(), dateFormatter), LocalTime.MIN);
+        LocalDateTime endDateTime = LocalDateTime.of(LocalDate.parse(customerPeriodDTO.getEndDate(), dateFormatter), LocalTime.MAX);
 
         return paymentRepository.findByCustomerAndCurrencyNameInAndDirectionInAndStatusInAndDateTimeBetweenOrderByDateTimeAsc(
                                                     customer,
                                                     currencyNames,
                                                     directions,
                                                     statuses,
-                                                    LocalDateTime.of(startDate, LocalTime.MIN),
-                                                    LocalDateTime.of(endDate, LocalTime.MAX));
+                                                    startDateTime,
+                                                    endDateTime);
     }
 
     @Transactional
-    public void addPayment(LocalDateTime dateTime,
-                           Boolean direction,
-                           Boolean status,
-                           Double amount,
-                           CurrencyName currencyName,
-                           String description,
-                           PaymentCategory paymentCategory,
-                           Account account,
-                           Customer customer){
-        Payment payment = new Payment(dateTime, direction, status, amount, currencyName, description, paymentCategory, account, customer);
+    public void addPayment(PaymentCreateUpdateDTO paymentCreateUpdateDTO, Customer customer){
+        Payment payment = new Payment(
+                        LocalDateTime.parse(paymentCreateUpdateDTO.getDateTime(), dateTimeFormatter),
+                        paymentCreateUpdateDTO.getDirection(),
+                        paymentCreateUpdateDTO.getStatus(),
+                        paymentCreateUpdateDTO.getAmount(),
+                        accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer)
+                                      .getCurrencyName(),
+                        paymentCreateUpdateDTO.getDescription(),
+                        paymentCategoryService.getByNameAndCustomer(paymentCreateUpdateDTO.getPaymentCategoryName(), customer),
+                        accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer),
+                                      customer);
         paymentRepository.save(payment);
     }
 
     @Transactional
-    public void deletePayments(List<Long> ids) {
-        ids.forEach(id -> {
-            Optional<Payment> payment = paymentRepository.findById(id);
-            payment.ifPresent(u -> paymentRepository.deleteById(u.getId()));
+    public void deletePayment(Long id, Customer customer) {
+        Optional<Payment> payment = paymentRepository.findById(id);
+        payment.ifPresent(u -> {
+            if (u.getCustomer().getId().equals(customer.getId())){
+                paymentRepository.deleteById(u.getId());
+            }
         });
     }
-
+    
     @Transactional
-    public void updatePayment(Long id,
-                                 LocalDateTime dateTime,
-                                 Boolean direction,
-                                 Boolean status,
-                                 Double amount,
-                                 CurrencyName currencyName,
-                                 String description,
-                                 PaymentCategory paymentCategory,
-                                 Account account) {
+    public void deletePayments(List<Long> ids, Customer customer) {
+        ids.forEach(id -> {
+            Optional<Payment> payment = paymentRepository.findById(id);
+            payment.ifPresent(u -> {
+                if (u.getCustomer().getId().equals(customer.getId())){
+                    paymentRepository.deleteById(u.getId());
+                }
+            });
+        });
+    }
+    
+    @Transactional
+    public void updatePayment(Long id, PaymentCreateUpdateDTO paymentCreateUpdateDTO) {
         Payment paymentToUpdate = getById(id);
-
-        paymentToUpdate.setDateTime(dateTime);
-        paymentToUpdate.setDirection(direction);
-        paymentToUpdate.setStatus(status);
-        paymentToUpdate.setAmount(amount);
-        paymentToUpdate.setCurrencyName(currencyName);
-        paymentToUpdate.setDescription(description);
-        paymentToUpdate.setPaymentCategory(paymentCategory);
-        paymentToUpdate.setAccount(account);
+        Customer customer = paymentToUpdate.getCustomer();
+       
+        paymentToUpdate.setDateTime(LocalDateTime.parse(paymentCreateUpdateDTO.getDateTime(), dateTimeFormatter));
+        paymentToUpdate.setDirection(paymentCreateUpdateDTO.getDirection());
+        paymentToUpdate.setStatus(paymentCreateUpdateDTO.getStatus());
+        paymentToUpdate.setAmount(paymentCreateUpdateDTO.getAmount());
+        paymentToUpdate.setCurrencyName(accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer)
+            .getCurrencyName());
+        paymentToUpdate.setDescription(paymentCreateUpdateDTO.getDescription());
+        paymentToUpdate.setPaymentCategory(paymentCategoryService.getByNameAndCustomer(paymentCreateUpdateDTO.getPaymentCategoryName(), customer));
+        paymentToUpdate.setAccount(accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer));
+ 
         paymentRepository.save(paymentToUpdate);
     }
+
 
     @Transactional      //TODO need to do sums round ?
     public void currencyExchange(Account accountSrc, Account accountDst, Double sumSrc, Double sumDst,
@@ -153,9 +168,9 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public Double getTotalSumByCurrency(Customer customer, CurrencyName currencyName){
+    public Double getTotalSumByCurrency(CurrencyName currencyName, Customer customer){
         Double totalSum = 0.0;
-        List<Payment> payments = getAllPaymentsByCurrencyName(customer, currencyName);
+        List<Payment> payments = getAllPaymentsByCurrencyName(currencyName, customer);
         for (Payment payment : payments){
             if (payment.getDirection()){
                 totalSum += payment.getAmount();
@@ -166,7 +181,7 @@ public class PaymentService {
         return totalSum;
     }
     @Transactional(readOnly = true)
-    public Double getOnScreenSumByCurrency(Customer customer, CurrencyName currencyName){
+    public Double getOnScreenSumByCurrency(CurrencyName currencyName, Customer customer){
         Double onScreenSum = 0.0;
         List<Payment> payments = getPaymentsByCustomerAndAllFilters(customer);
         for (Payment payment : payments){
@@ -182,9 +197,11 @@ public class PaymentService {
     }
 
     @Transactional(readOnly = true)
-    public Double getDailySumByCurrency(Customer customer, CurrencyName currencyName){
+    public Double getDailySumByCurrency(CurrencyName currencyName, Customer customer){
         Double dailySum = 0.0;
-        List<Payment> payments = getAllPaymentsPeriod(customer, LocalDate.now(), LocalDate.now());
+        CustomerPeriodDTO customerPeriodDTO = CustomerPeriodDTO.of(LocalDate.now().format(dateFormatter),
+                                                                   LocalDate.now().format(dateFormatter));
+        List<Payment> payments = getAllPaymentsByPeriod(customerPeriodDTO, customer);
         for (Payment payment : payments){
             if (payment.getCurrencyName().equals(currencyName)){
                 if (payment.getDirection()){
@@ -202,18 +219,15 @@ public class PaymentService {
     public Map<String, Double> getStatistic(Customer customer){     // TODO make strings inline
         Map<String, Double> statistic = new HashMap<>();
 
-        Double totalSumUAH = getTotalSumByCurrency(customer, CurrencyName.UAH);
-        Double totalSumEUR = getTotalSumByCurrency(customer, CurrencyName.EUR);
-        Double totalSumUSD = getTotalSumByCurrency(customer, CurrencyName.USD);
-        Double onScreenSumUAH = getOnScreenSumByCurrency(customer, CurrencyName.UAH);
-        Double onScreenSumEUR = getOnScreenSumByCurrency(customer, CurrencyName.EUR);
-        Double onScreenSumUSD = getOnScreenSumByCurrency(customer, CurrencyName.USD);
-        Double dailySumUAH = getDailySumByCurrency(customer, CurrencyName.UAH);
-        Double dailySumEUR = getDailySumByCurrency(customer, CurrencyName.EUR);
-        Double dailySumUSD = getDailySumByCurrency(customer, CurrencyName.USD);
-//        Currency currencyUAH = currencyService.getCurrencyByNameToday(CurrencyName.UAH);
-//        Currency currencyEUR = currencyService.getCurrencyByNameToday(CurrencyName.EUR);
-//        Currency currencyUSD = currencyService.getCurrencyByNameToday(CurrencyName.USD);
+        Double totalSumUAH = getTotalSumByCurrency(CurrencyName.UAH, customer);
+        Double totalSumEUR = getTotalSumByCurrency(CurrencyName.EUR, customer);
+        Double totalSumUSD = getTotalSumByCurrency(CurrencyName.USD, customer);
+        Double onScreenSumUAH = getOnScreenSumByCurrency(CurrencyName.UAH, customer);
+        Double onScreenSumEUR = getOnScreenSumByCurrency(CurrencyName.EUR, customer);
+        Double onScreenSumUSD = getOnScreenSumByCurrency(CurrencyName.USD, customer);
+        Double dailySumUAH = getDailySumByCurrency(CurrencyName.UAH, customer);
+        Double dailySumEUR = getDailySumByCurrency(CurrencyName.EUR, customer);
+        Double dailySumUSD = getDailySumByCurrency(CurrencyName.USD, customer);
 
         statistic.put("totalSumUAH", totalSumUAH);
         statistic.put("totalSumEUR", totalSumEUR);
@@ -224,12 +238,7 @@ public class PaymentService {
         statistic.put("dailySumUAH", dailySumUAH);
         statistic.put("dailySumEUR", dailySumEUR);
         statistic.put("dailySumUSD", dailySumUSD);
-//        statistic.put("currencyUAH", currencyUAH);
-//        statistic.put("currencyEUR", currencyEUR);
-//        statistic.put("currencyUSD", currencyUSD);
-
         return statistic;
     }
-
 
 }

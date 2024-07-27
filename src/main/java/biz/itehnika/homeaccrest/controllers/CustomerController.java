@@ -32,7 +32,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-@Tag(name = "Customer activity", description = "Customer operations are available with administrator rights")
+@Tag(name = "Customer activity", description = "Customer operations are available with administrator rights (except Filters and Settings)")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -105,11 +105,11 @@ public class CustomerController {
     )
     @DeleteMapping(value = "/admin/delete/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<HttpStatus> deleteCustomer(@PathVariable("id") Long id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") Long id) {
         if (id != null) {
             customerService.deleteCustomer(id);
         }
-        return new ResponseEntity<>(HttpStatus.OK);
+        return ResponseEntity.ok().build();
     }
     
     
@@ -125,7 +125,7 @@ public class CustomerController {
                 schema = @Schema(implementation = AppError.class)) }),
         @ApiResponse(responseCode = "401", description = "Unauthorized",
             content = { @Content(mediaType = "application/json") })
-    }
+        }
     )
     @PutMapping(value = "/admin/update/{id}")     // TODO - update any users from admin page
     @PreAuthorize("hasRole('ROLE_ADMIN')")

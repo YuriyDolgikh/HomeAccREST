@@ -1,6 +1,6 @@
 package biz.itehnika.homeaccrest.services;
 
-import biz.itehnika.homeaccrest.dto.AccountDTO;
+import biz.itehnika.homeaccrest.dto.AccountCreateUpdateDTO;
 import biz.itehnika.homeaccrest.models.Account;
 import biz.itehnika.homeaccrest.models.Customer;
 import biz.itehnika.homeaccrest.models.Payment;
@@ -84,8 +84,8 @@ public class AccountService {
     }
 
     @Transactional
-    public void addAccount(AccountDTO accountDTO, Customer customer){
-        Account account = new Account(accountDTO, customer);
+    public void addAccount(AccountCreateUpdateDTO accountCreateUpdateDTO, Customer customer){
+        Account account = new Account(accountCreateUpdateDTO, customer);
         accountRepository.save(account);
     }
 
@@ -112,13 +112,13 @@ public class AccountService {
     }
 
     @Transactional
-    public void updateAccount(Long id, AccountDTO accountDTO) {
+    public void updateAccount(Long id, AccountCreateUpdateDTO accountCreateUpdateDTO) {
         Account accountToUpdate = getById(id);
 
-        accountToUpdate.setName(accountDTO.getName());
-        accountToUpdate.setDescription(accountDTO.getDescription());
-        accountToUpdate.setType(accountDTO.getType());
-        accountToUpdate.setCurrencyName(accountDTO.getCurrencyName());
+        accountToUpdate.setName(accountCreateUpdateDTO.getName());
+        accountToUpdate.setDescription(accountCreateUpdateDTO.getDescription());
+        accountToUpdate.setType(accountCreateUpdateDTO.getType());
+        accountToUpdate.setCurrencyName(accountCreateUpdateDTO.getCurrencyName());
         accountRepository.save(accountToUpdate);
     }
 

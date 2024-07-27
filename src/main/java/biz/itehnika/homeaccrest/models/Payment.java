@@ -2,6 +2,7 @@ package biz.itehnika.homeaccrest.models;
 
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -13,6 +14,7 @@ import java.util.Comparator;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
 public class Payment implements Comparator {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

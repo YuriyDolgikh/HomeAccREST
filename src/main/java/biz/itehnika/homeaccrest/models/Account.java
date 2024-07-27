@@ -1,6 +1,6 @@
 package biz.itehnika.homeaccrest.models;
 
-import biz.itehnika.homeaccrest.dto.AccountDTO;
+import biz.itehnika.homeaccrest.dto.AccountCreateUpdateDTO;
 import biz.itehnika.homeaccrest.models.enums.AccountType;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import jakarta.persistence.*;
@@ -41,11 +41,11 @@ public class Account {
         this.customer = customer;
     }
 
-    public Account(AccountDTO accountDTO, Customer customer){
-        this.name = accountDTO.getName();
-        this.description = accountDTO.getDescription();
-        this.type = accountDTO.getType();
-        this.currencyName = accountDTO.getCurrencyName();
+    public Account(AccountCreateUpdateDTO accountCreateUpdateDTO, Customer customer){
+        this.name = accountCreateUpdateDTO.getName();
+        this.description = accountCreateUpdateDTO.getDescription();
+        this.type = accountCreateUpdateDTO.getType();
+        this.currencyName = accountCreateUpdateDTO.getCurrencyName();
         this.customer = customer;
     }
 }

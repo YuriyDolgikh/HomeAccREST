@@ -14,19 +14,18 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class AccountDTO {
 
+    private Long id;
     private String name;
     private String description;
-    @Enumerated(EnumType.STRING)
     private AccountType type;
-    @Enumerated(EnumType.STRING)
     private CurrencyName currencyName;
 
 
-    public static AccountDTO of(String name, String description, AccountType accountType, CurrencyName currencyName){
-        return new AccountDTO(name, description, accountType, currencyName);
+    public static AccountDTO of(Long id, String name, String description, AccountType accountType, CurrencyName currencyName){
+        return new AccountDTO(id, name, description, accountType, currencyName);
     }
 
     public static AccountDTO of(Account account) {
-        return new AccountDTO(account.getName(), account.getDescription(), account.getType(), account.getCurrencyName());
+        return new AccountDTO(account.getId(), account.getName(), account.getDescription(), account.getType(), account.getCurrencyName());
     }
 }
