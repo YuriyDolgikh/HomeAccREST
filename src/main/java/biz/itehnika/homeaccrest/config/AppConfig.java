@@ -16,7 +16,8 @@ import org.springframework.security.config.annotation.method.configuration.Enabl
 public class AppConfig {
     public final CustomerService customerService;
     
-    public static final String ADMIN_LOGIN = "admin";
+    public static final String ADMIN_EMAIL = "admin@example.com";
+    
     @Value("${admin.password}")
     private String passAdm;
 
@@ -26,12 +27,14 @@ public class AppConfig {
             @Override
             public void run(String... args){
                 // TODO - Code before starting application
-                if (customerService.findByLogin(ADMIN_LOGIN) == null){
-                    customerService.createNewCustomer(new CustomerRegistrationDTO(ADMIN_LOGIN,passAdm,passAdm, "admin@example.com"));
-                    Customer customer = customerService.findByLogin(ADMIN_LOGIN);
+                if (customerService.findByEmail(ADMIN_EMAIL) == null){
+                    customerService.createNewCustomer(new CustomerRegistrationDTO(ADMIN_EMAIL,passAdm,passAdm, "adminFirstName" , "adminLastName"));
+                    Customer customer = customerService.findByEmail(ADMIN_EMAIL);
                     customerService.setAdmin(customer);
                 }
             }
         };
     }
+    
+   
 }

@@ -78,7 +78,7 @@ public class PaymentController {
     @GetMapping("/payments")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<?> paymentsList(Principal principal){
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         List<PaymentDTO> paymentDTOList = PaymentDTO.listOf(paymentService.getPaymentsByCustomerAndAllFilters(customer));
         return new ResponseEntity<>(paymentDTOList, HttpStatus.OK);
     }
@@ -111,7 +111,7 @@ public class PaymentController {
                                                   )
                                          @RequestBody PaymentCreateUpdateDTO paymentCreateUpdateDTO, Principal principal) {
         
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         
         if (paymentCategoryService.getByNameAndCustomer(paymentCreateUpdateDTO.getPaymentCategoryName(), customer) == null) {
             return new ResponseEntity<>(new AppError("Category with specified name does not exist"), HttpStatus.BAD_REQUEST);
@@ -140,7 +140,7 @@ public class PaymentController {
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<Void> deletePayments(@Parameter(schema = @Schema(example = "[56, 95, 134]"))
                                                  @RequestBody List<Long> toDeleteList, Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if (toDeleteList != null && !toDeleteList.isEmpty()) {
             paymentService.deletePayments(toDeleteList, customer);
         }
@@ -161,7 +161,7 @@ public class PaymentController {
     @DeleteMapping(value = "/payments/delete/{id}")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<Void> deletePayment(@PathVariable("id") Long id , Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if (id != null) {
             paymentService.deletePayment(id, customer);
         }
@@ -197,7 +197,7 @@ public class PaymentController {
                                            )
                                            @RequestBody PaymentCreateUpdateDTO paymentCreateUpdateDTO, Principal principal) {
         
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if(!paymentService.existsById(id)){
             return new ResponseEntity<>(new AppError("Payment with specified ID not exists"), HttpStatus.BAD_REQUEST);
         }else {
@@ -235,7 +235,7 @@ public class PaymentController {
                                               )
                                               @RequestBody PaymentExchTransDTO paymentExchTransDTO, Principal principal) {
 
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if(!accountService.existsById(paymentExchTransDTO.getSrcAccountId()) ||
            !accountService.existsById(paymentExchTransDTO.getDstAccountId())){
             return new ResponseEntity<>(new AppError("Account(s) with specified ID(s) not exists"), HttpStatus.BAD_REQUEST);
@@ -303,7 +303,7 @@ public class PaymentController {
                                                        )
                                                  @RequestBody PaymentExchTransDTO paymentExchTransDTO, Principal principal) {
         
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if(!accountService.existsById(paymentExchTransDTO.getSrcAccountId()) ||
             !accountService.existsById(paymentExchTransDTO.getDstAccountId())){
             return new ResponseEntity<>(new AppError("Account(s) with specified ID(s) not exists"), HttpStatus.BAD_REQUEST);

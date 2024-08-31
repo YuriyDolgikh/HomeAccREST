@@ -28,7 +28,7 @@ public class CurrencyService {
     }
 
     @Transactional
-    public void addTodayRatesIntoDB(){  //TODO - make this every time when customer do login
+    public void addTodayRatesIntoDB(){  //TODO - make this every time when customer do firstName
         LocalDate localDate = LocalDate.now();
         List<Currency> listTodayRates = currencyRepository.findCurrenciesByDateRate(localDate);
         if (!listTodayRates.isEmpty()){

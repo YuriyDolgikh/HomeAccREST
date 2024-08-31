@@ -1,6 +1,7 @@
 package biz.itehnika.homeaccrest.config;
 
 
+import biz.itehnika.homeaccrest.services.InvalidTokenService;
 import biz.itehnika.homeaccrest.utils.JwtTokenUtils;
 import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.FilterChain;
@@ -15,6 +16,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
+import javax.security.auth.login.LoginException;
 import java.io.IOException;
 import java.util.stream.Collectors;
 
@@ -23,6 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class JwtRequestFilter extends OncePerRequestFilter {
     private final JwtTokenUtils jwtTokenUtils;
+    private final InvalidTokenService invalidTokenService;
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -32,9 +35,14 @@ public class JwtRequestFilter extends OncePerRequestFilter {
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             jwt = authHeader.substring(7);
             try {
+                if (invalidTokenService.existsByToken(jwt)){
+                    throw new LoginException();
+                }
                 username = jwtTokenUtils.getUsername(jwt);
             } catch (ExpiredJwtException e) {
                 log.debug("Время жизни токена вышло");
+            } catch (LoginException e) {
+                log.debug("Пользователь не авторизован");
             } catch (SecurityException e) {
                 log.debug("Подпись неправильная");
             }

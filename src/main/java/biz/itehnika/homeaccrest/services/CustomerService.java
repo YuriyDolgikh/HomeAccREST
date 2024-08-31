@@ -51,11 +51,6 @@ public class CustomerService{
     }
     
     @Transactional(readOnly = true)
-    public Customer findByLogin(String login) {
-        return customerRepository.findCustomerByLogin(login);
-    }
-    
-    @Transactional(readOnly = true)
     public Customer findByEmail(String email) {
         return customerRepository.findCustomerByEmail(email);
     }
@@ -63,10 +58,11 @@ public class CustomerService{
     @Transactional
     public void createNewCustomer(CustomerRegistrationDTO customerRegistrationDTO) {
         Customer customer = new Customer();
-        customer.setLogin(customerRegistrationDTO.getLogin());
         customer.setEmail(customerRegistrationDTO.getEmail());
         customer.setPassword(passwordEncoder.encode(customerRegistrationDTO.getPassword()));
         customer.setRole(CustomerRole.USER);
+        customer.setFirstName(customerRegistrationDTO.getFirstName());
+        customer.setLastName(customerRegistrationDTO.getLastName());
         customer.setFilters(true, true, true, true, true, true, true);
         customerRepository.save(customer);
         paymentCategoryService.initPaymentCategoriesForCustomer(customer);
@@ -83,7 +79,7 @@ public class CustomerService{
     public void deleteCustomer(Long idToDelete) {
             Optional<Customer> customer = customerRepository.findById(idToDelete);
             customer.ifPresent(u -> {
-                if ( ! AppConfig.ADMIN_LOGIN.equals(u.getLogin())) {
+                if ( ! AppConfig.ADMIN_EMAIL.equals(u.getFirstName())) {
                     customerRepository.deleteById(u.getId());
                 }
             });
@@ -94,7 +90,7 @@ public class CustomerService{
         toDeleteList.forEach(toDelete -> {
             Optional<Customer> customer = customerRepository.findById(toDelete);
             customer.ifPresent(u -> {
-                if ( ! AppConfig.ADMIN_LOGIN.equals(u.getLogin())) {
+                if ( ! AppConfig.ADMIN_EMAIL.equals(u.getFirstName())) {
                     customerRepository.deleteById(u.getId());
                 }
             });
@@ -104,8 +100,10 @@ public class CustomerService{
     @Transactional
     public void updateCustomer(Long id, CustomerUpdateDTO customerUpdateDTO) {
         Customer customerToUpdate = customerRepository.findById(id).orElseThrow();
-        customerToUpdate.setLogin(customerUpdateDTO.getLogin());
         customerToUpdate.setEmail(customerUpdateDTO.getEmail());
+        customerToUpdate.setFirstName(customerUpdateDTO.getFirstName());
+        customerToUpdate.setLastName(customerUpdateDTO.getLastName());
+        
         customerRepository.save(customerToUpdate);
     }
 

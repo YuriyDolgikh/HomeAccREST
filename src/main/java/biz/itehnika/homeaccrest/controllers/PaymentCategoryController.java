@@ -54,7 +54,7 @@ public class PaymentCategoryController {
     @GetMapping("/сategories")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<?> categoriesList(Principal principal){
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         List<PaymentCategoryDTO> paymentCategoryDTOList = PaymentCategoryDTO.listOf(paymentCategoryService.getPaymentCategoriesByCustomer(customer));
         return new ResponseEntity<>(paymentCategoryDTOList, HttpStatus.OK);
     }
@@ -77,7 +77,7 @@ public class PaymentCategoryController {
     public ResponseEntity<?> newCategory(@Parameter(schema = @Schema(example = "{\"name\":\"HEALTH\",\"description\":\"Medicines, clinics, food additives ...\"}"))
                                          @RequestBody PaymentCategoryCreateUpdateDTO paymentCategoryCreateUpdateDTO, Principal principal) {
 
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         
         if (paymentCategoryService.getByNameAndCustomer(paymentCategoryCreateUpdateDTO.getName(), customer) != null) {
             return new ResponseEntity<>(new AppError("Category with specified name for this customer already exists"), HttpStatus.BAD_REQUEST);
@@ -104,7 +104,7 @@ public class PaymentCategoryController {
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<Void> deleteCategories(@Parameter(schema = @Schema(example = "[56, 95, 134]"))
                                                        @RequestBody List<Long> toDeleteList, Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if (toDeleteList != null && !toDeleteList.isEmpty()) {
             paymentCategoryService.deletePaymentCategories(toDeleteList, customer);
         }
@@ -127,7 +127,7 @@ public class PaymentCategoryController {
     @DeleteMapping(value = "/categories/delete/{id}")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id , Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if (id != null) {
             paymentCategoryService.deletePaymentCategory(id, customer);
         }
@@ -154,7 +154,7 @@ public class PaymentCategoryController {
     @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_ADMIN')")
     public ResponseEntity<?> updateCategiry (@PathVariable(value = "id") Long id,
                                              @RequestBody PaymentCategoryCreateUpdateDTO categoryCreateUpdateDTO, Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if(!paymentCategoryService.existsById(id)){
             return new ResponseEntity<>(new AppError("Category with specified ID not exists"), HttpStatus.BAD_REQUEST);
         }else {
@@ -185,7 +185,7 @@ public class PaymentCategoryController {
     @GetMapping(value = "/categories/init")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<?> initCategories(Principal principal){
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         paymentCategoryService.initPaymentCategoriesForCustomer(customer);
         return ResponseEntity.ok().build();
     }

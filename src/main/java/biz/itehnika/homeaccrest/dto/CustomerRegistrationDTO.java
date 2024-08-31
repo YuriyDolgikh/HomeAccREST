@@ -6,8 +6,9 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class CustomerRegistrationDTO {
-    private String login;
+    private String email;
     private String password;
     private String confirmPassword;
-    private String email;
+    private String firstName;
+    private String lastName;
 }

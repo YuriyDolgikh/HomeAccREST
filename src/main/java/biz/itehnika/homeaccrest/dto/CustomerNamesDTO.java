@@ -1,10 +1,11 @@
 package biz.itehnika.homeaccrest.dto;
 
+import lombok.AllArgsConstructor;
 import lombok.Data;
 
 @Data
-public class CustomerUpdateDTO {
-    private String email;
+@AllArgsConstructor
+public class CustomerNamesDTO {
     private String firstName;
     private String lastName;
 }

@@ -22,11 +22,11 @@ public class SwaggerConfig {
                 )
             )
             .info(
-                new Info().title("Home Accounting API").description("You need to send Bearer Token from Frontend " +
+                new Info().title("Home Accounting API").description("You need to send Bearer InvalidToken from Frontend " +
                                                                     "in the header of the request. In the request, " +
-                                                                    "put Bearer Token as a key-value pair, where " +
+                                                                    "put Bearer InvalidToken as a key-value pair, where " +
                                                                     "\"Authorization\" will be the key and the \"Bearer\" " +
-                                                                    "Keyword followed by Bearer Token after a space as value.")
+                                                                    "Keyword followed by Bearer InvalidToken after a space as value.")
             );
     }
     

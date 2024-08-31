@@ -57,7 +57,7 @@ public class AccountController {
     @GetMapping("/accounts")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public List<AccountDTO> accountsList(Principal principal){
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         List<AccountDTO> accountDTOList = new ArrayList<>();
         for (Account account : accountService.getAccountsByCustomer(customer)){
             accountDTOList.add(AccountDTO.of(account));
@@ -84,7 +84,7 @@ public class AccountController {
     public ResponseEntity<?> newAccount(@Parameter(schema = @Schema(example = "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))
                                            @RequestBody AccountCreateUpdateDTO accountCreateUpdateDTO, Principal principal) {
 
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         
         if (accountService.getAccountByNameAndCustomer(accountCreateUpdateDTO.getName(), customer) != null) {
             return new ResponseEntity<>(new AppError("Account with specified name for this customer already exists"), HttpStatus.BAD_REQUEST);
@@ -110,7 +110,7 @@ public class AccountController {
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<HttpStatus> deleteAccounts(@Parameter(schema = @Schema(example = "[12, 133, 13457]"))
                                                      @RequestBody List<Long> toDeleteList, Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if (toDeleteList != null && !toDeleteList.isEmpty()) {
             accountService.deleteAccounts(toDeleteList, customer);
         }
@@ -132,7 +132,7 @@ public class AccountController {
     @DeleteMapping(value = "/accounts/delete/{id}")
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<HttpStatus> deleteAccount(@PathVariable("id") Long id , Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if (id != null) {
             accountService.deleteAccount(id, customer);
         }
@@ -158,7 +158,7 @@ public class AccountController {
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateAccount (@PathVariable(value = "id") Long id,
                                             @RequestBody AccountCreateUpdateDTO accountCreateUpdateDTO, Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         if(!accountService.existsById(id)){
             return new ResponseEntity<>(new AppError("Account with specified ID not exists"), HttpStatus.BAD_REQUEST);
         }else {

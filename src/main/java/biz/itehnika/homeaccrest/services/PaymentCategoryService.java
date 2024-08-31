@@ -56,7 +56,7 @@ public class PaymentCategoryService {
 
     @Transactional
     public void initPaymentCategoriesForCustomer(Customer customer){
-        Customer customerAdmin = customerRepository.findCustomerByLogin(AppConfig.ADMIN_LOGIN);
+        Customer customerAdmin = customerRepository.findCustomerByEmail(AppConfig.ADMIN_EMAIL);
 
         List<PaymentCategory> paymentCategories = getPaymentCategoriesByCustomer(customerAdmin);
         for (PaymentCategory category : paymentCategories){
@@ -97,7 +97,7 @@ public class PaymentCategoryService {
     
     @Transactional
     public void initForAdmin(){
-        Customer customerAdmin = customerRepository.findCustomerByLogin(AppConfig.ADMIN_LOGIN);
+        Customer customerAdmin = customerRepository.findCustomerByEmail(AppConfig.ADMIN_EMAIL);
         addPaymentCategory("DEFAULT", "Default payment category", customerAdmin);
         addPaymentCategory("SALARY", "Income earned from work", customerAdmin);
         addPaymentCategory("HEALTH", "Medicines, clinics, food additives ...", customerAdmin);

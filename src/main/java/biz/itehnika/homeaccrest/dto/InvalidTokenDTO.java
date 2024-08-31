@@ -3,9 +3,10 @@ package biz.itehnika.homeaccrest.dto;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
-@Data
+import java.time.LocalDateTime;
 @AllArgsConstructor
-public class JwtResponseDTO {
-    private CustomerNamesDTO user;
+@Data
+public class InvalidTokenDTO {
     private String token;
+    private LocalDateTime validDateTime;
 }

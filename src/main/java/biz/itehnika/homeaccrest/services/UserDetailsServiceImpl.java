@@ -19,15 +19,15 @@ public class UserDetailsServiceImpl implements UserDetailsService {
     private final CustomerRepository customerRepository;
     
     @Override
-    public UserDetails loadUserByUsername(String login) throws UsernameNotFoundException {
-        Customer customer = customerRepository.findCustomerByLogin(login);
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        Customer customer = customerRepository.findCustomerByEmail(email);
         if (customer == null)
-            throw new UsernameNotFoundException(login + " not found");
+            throw new UsernameNotFoundException(email + " not found");
 
         List<GrantedAuthority> roles = List.of(
                 new SimpleGrantedAuthority(customer.getRole().toString())   // Customer have only one Role
         );
 
-        return new User(customer.getLogin(), customer.getPassword(), roles);
+        return new User(customer.getEmail(), customer.getPassword(), roles);
     }
 }

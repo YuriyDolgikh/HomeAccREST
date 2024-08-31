@@ -21,9 +21,10 @@ public class Customer {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private String login;
-    private String password;
     private String email;
+    private String password;
+    private String firstName;
+    private String lastName;
     
     @Enumerated(EnumType.STRING)
     private CustomerRole role;
@@ -53,24 +54,26 @@ public class Customer {
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer", orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();
-
-    public Customer(String login, String password, CustomerRole role,
-                    String email, String phone, String address) {
-        this.login = login;
-        this.password = password;
-        this.role = role;
+    
+    public Customer(String email, String password, String firstName, String lastName, CustomerRole role, String phone, String address) {
         this.email = email;
+        this.password = password;
+        this.firstName = firstName;
+        this.lastName = lastName;
+        this.role = role;
         this.phone = phone;
         this.address = address;
     }
+
     
     public static Customer fromDTO(CustomerRegistrationDTO customerRegistrationDTO){
-        return new Customer(customerRegistrationDTO.getLogin(),
+        return new Customer(customerRegistrationDTO.getEmail(),
                             customerRegistrationDTO.getPassword(),
+                            customerRegistrationDTO.getFirstName(),
+                            customerRegistrationDTO.getLastName(),
                             CustomerRole.USER,
-                            customerRegistrationDTO.getEmail(),
-                      null,
-                     null);
+                            null,
+                            null);
     }
 
 //    public Map<String, Boolean> getFilters(){

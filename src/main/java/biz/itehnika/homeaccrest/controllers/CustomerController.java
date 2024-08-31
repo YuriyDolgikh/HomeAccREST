@@ -46,8 +46,8 @@ public class CustomerController {
                      description = "OK",
                      content =  @Content(mediaType = "application/json",
                                          schema = @Schema(
-                                            example = "[{\"id\":1,\"login\":\"admin\",\"email\":\"admin@example.com\"}," +
-                                                       "{\"id\":2,\"login\":\"testUser\",\"email\":\"user@example.com\"}]"))),
+                                            example = "[{\"id\":1,\"firstName\":\"admin\",\"email\":\"admin@example.com\"}," +
+                                                       "{\"id\":2,\"firstName\":\"testUser\",\"email\":\"user@example.com\"}]"))),
         @ApiResponse(responseCode = "401",
                      description = "Unauthorized",
                      content = { @Content(mediaType = "application/json") })
@@ -129,10 +129,6 @@ public class CustomerController {
         if(!customerService.existsById(id)){
             return new ResponseEntity<>(new AppError("Customer with specified ID not exists"), HttpStatus.BAD_REQUEST);
         }
-        if (customerService.findByLogin(customerUpdateDTO.getLogin()) != null &&
-            !customerService.findByLogin(customerUpdateDTO.getLogin()).getId().equals(id)) {
-            return new ResponseEntity<>(new AppError("Customer with specified name already exists"), HttpStatus.BAD_REQUEST);
-        }
         if (customerService.findByEmail(customerUpdateDTO.getEmail()) != null &&
             !customerService.findByEmail(customerUpdateDTO.getEmail()).getId().equals(id)) {
             return new ResponseEntity<>(new AppError("Customer with specified E-mail already exists"), HttpStatus.BAD_REQUEST);
@@ -158,7 +154,7 @@ public class CustomerController {
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<CustomerPeriodDTO> getActivePeriod(Principal principal) {
         
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         return ResponseEntity.ok(customerService.getActivePeriod(customer));
         
     }
@@ -177,7 +173,7 @@ public class CustomerController {
     @PostMapping(value = "/period")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<Void> setActivePeriod(@RequestBody CustomerPeriodDTO customerPeriodDTO, Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         customerService.setActivePeriod(customerPeriodDTO, customer);
 
         return ResponseEntity.ok().build();
@@ -197,7 +193,7 @@ public class CustomerController {
     @GetMapping(value = "/period/today")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<Void> setActivePeriodToday(Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         String today = LocalDate.now().format(dateFormatter);
         customerService.setActivePeriod(CustomerPeriodDTO.of(today, today), customer);
         return ResponseEntity.ok().build();
@@ -217,7 +213,7 @@ public class CustomerController {
     @GetMapping(value = "/period/month")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<Void> setActivePeriodMonth(Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         String startDay = LocalDate.now().withDayOfMonth(1).format(dateFormatter);
         String endDay = LocalDate.now().withDayOfMonth(LocalDate.now().lengthOfMonth()).format(dateFormatter);
         customerService.setActivePeriod(CustomerPeriodDTO.of(startDay, endDay), customer);
@@ -240,7 +236,7 @@ public class CustomerController {
     @GetMapping(value = "/filters")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<CustomerFiltersDTO> getFilters(Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         CustomerFiltersDTO filtersDTO = customerService.getFilters(customer);
 
         return ResponseEntity.ok(filtersDTO);
@@ -261,7 +257,7 @@ public class CustomerController {
     @PostMapping(value = "/filters")
     @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_ADMIN')")
     public ResponseEntity<Void> setFilters(@RequestBody CustomerFiltersDTO customerFiltersDTO, Principal principal) {
-        Customer customer = customerService.findByLogin(principal.getName());
+        Customer customer = customerService.findByEmail(principal.getName());
         customerService.setFilter(customerFiltersDTO, customer);
         return ResponseEntity.ok().build();
     }
