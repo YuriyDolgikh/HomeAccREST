@@ -14,9 +14,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -27,7 +25,6 @@ public class CustomerService{
     private PaymentCategoryService paymentCategoryService;
     private PasswordEncoder passwordEncoder;
     
-    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
     final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     
     
@@ -122,8 +119,6 @@ public class CustomerService{
         if (endDate == null) {
             endDate = LocalDate.now();
         }
-        String startDateStr = startDate.format(dateFormatter); // TODO - for DEBUG
-        String endDateStr = endDate.format(dateFormatter);     // TODO - for DEBUG
         
         return CustomerPeriodDTO.of(startDate.format(dateFormatter), endDate.format(dateFormatter));
     }
@@ -164,26 +159,6 @@ public class CustomerService{
     public void setAdmin(Customer customer){
         customer.setRole(CustomerRole.ADMIN);
         customerRepository.save(customer);
-    }
-
-//    public Map<String, Boolean> translateFiltersToMap(List<String> filtersList){
-//        Map<String, Boolean> filters = new HashMap<>();
-//
-//        filters.put("isUAH", filtersList.contains("UAH"));
-//        filters.put("isEUR", filtersList.contains("EUR"));
-//        filters.put("isUSD", filtersList.contains("USD"));
-//        filters.put("isIN", filtersList.contains("IN"));
-//        filters.put("isOUT", filtersList.contains("OUT"));
-//        filters.put("isCompleted", filtersList.contains("Completed"));
-//        filters.put("isScheduled", filtersList.contains("Scheduled"));
-//
-//        return filters;
-//    }
-
-    public static String getCustomerDateTime(){
-        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm");
-        ZoneId zoneId = ZoneId.of(System.getProperty("user.timezone"));
-        return sdf.format(new Date(System.currentTimeMillis()));
     }
 
 }

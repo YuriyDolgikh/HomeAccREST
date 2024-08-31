@@ -1,14 +1,11 @@
 package biz.itehnika.homeaccrest.dto;
 
 import biz.itehnika.homeaccrest.models.Payment;
-import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 @Data
 @NoArgsConstructor
@@ -16,7 +13,6 @@ import java.util.List;
 public class PaymentCreateUpdateDTO {
     
     static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
-    static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     
     private String dateTime;
     private Boolean direction;          // True - income, False - waste

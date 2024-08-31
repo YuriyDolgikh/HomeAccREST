@@ -4,6 +4,7 @@ import biz.itehnika.homeaccrest.dto.CustomerRegistrationDTO;
 import biz.itehnika.homeaccrest.dto.JwtRequestDTO;
 import biz.itehnika.homeaccrest.dto.JwtResponseDTO;
 import biz.itehnika.homeaccrest.exceptions.AppError;
+import biz.itehnika.homeaccrest.services.CurrencyService;
 import biz.itehnika.homeaccrest.services.CustomerService;
 import biz.itehnika.homeaccrest.services.UserDetailsServiceImpl;
 import biz.itehnika.homeaccrest.utils.JwtTokenUtils;
@@ -35,6 +36,7 @@ public class AuthController {
     private final JwtTokenUtils jwtTokenUtils;
     private final AuthenticationManager authenticationManager;
     private final CustomerService customerService;
+    private final CurrencyService currencyService;
     
     
     @Operation(
@@ -61,6 +63,8 @@ public class AuthController {
         } catch (BadCredentialsException e) {
             return new ResponseEntity<>(new AppError("Wrong login or password"), HttpStatus.UNAUTHORIZED);
         }
+        currencyService.addTodayRatesIntoDB();  // TODO - Set rule to actualise exchange rates ( e.g.: every customer login || every one hour)
+        
         UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getLogin());
         String token = jwtTokenUtils.generateToken(userDetails);
         return ResponseEntity.ok(new JwtResponseDTO(token));

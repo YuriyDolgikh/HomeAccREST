@@ -20,16 +20,12 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.web.bind.annotation.*;
 
 import java.security.Principal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 
 @Tag(name = "Customer activity", description = "Customer operations are available with administrator rights (except Filters and Settings)")
@@ -39,7 +35,6 @@ import java.util.List;
 public class CustomerController {
     private final CustomerService customerService;
     
-    final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
     final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     
     @Operation(
@@ -271,52 +266,4 @@ public class CustomerController {
         return ResponseEntity.ok().build();
     }
     
-     static User getCurrentUser() {
-        return (User)SecurityContextHolder
-                .getContext()
-                .getAuthentication()
-                .getPrincipal();
-    }
-
-    static boolean isAdmin(User user) {
-        Collection<GrantedAuthority> roles = user.getAuthorities();
-
-        for (GrantedAuthority auth : roles) {
-            if ("ROLE_ADMIN".equals(auth.getAuthority()))
-                return true;
-        }
-        return false;
-    }
-
 }
-
-
-
-
-
-
-
-
-
-// NEW Version
-
-//@GetMapping("/unsecured")
-//public String unsecuredData() {
-//    return "Unsecured data";
-//}
-//
-//@GetMapping("/secured")
-//public String securedData() {
-//    return "Secured data";
-//}
-//
-//@GetMapping("/admin")
-//public String adminData() {
-//    return "Admin data";
-//}
-//
-//@GetMapping("/info")
-//public String userData(Principal principal) {
-//    return principal.getName();
-//}
-// End NEW Version

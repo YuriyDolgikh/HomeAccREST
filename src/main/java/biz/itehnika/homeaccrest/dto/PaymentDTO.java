@@ -1,17 +1,11 @@
 package biz.itehnika.homeaccrest.dto;
 
-import biz.itehnika.homeaccrest.models.Account;
-import biz.itehnika.homeaccrest.models.Customer;
 import biz.itehnika.homeaccrest.models.Payment;
-import biz.itehnika.homeaccrest.models.PaymentCategory;
-import biz.itehnika.homeaccrest.models.enums.AccountType;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
-import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
@@ -22,7 +16,6 @@ import java.util.List;
 public class PaymentDTO {
     
     static final DateTimeFormatter dateTimeFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy HH:mm");
-    static final DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("dd-MM-yyyy");
     
     private Long id;
     private String dateTime;

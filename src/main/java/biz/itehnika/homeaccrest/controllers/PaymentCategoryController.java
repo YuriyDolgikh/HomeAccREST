@@ -25,7 +25,7 @@ import java.security.Principal;
 import java.util.List;
 
 @Tag(name = "Payment category activity",
-     description = "All Payment Categorise operations are available for customer in context with USERs role")
+     description = "All Payment Categories operations are available for customer in context with USERs role")
 @Slf4j
 @RestController
 @RequiredArgsConstructor
@@ -204,7 +204,7 @@ public class PaymentCategoryController {
     )
     @GetMapping(value = "/categories/init/admin")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN')")
-    public ResponseEntity<?> initAdminsCategories(Principal principal){
+    public ResponseEntity<?> initAdminsCategories(){
         paymentCategoryService.initForAdmin();
         return ResponseEntity.ok().build();
     }

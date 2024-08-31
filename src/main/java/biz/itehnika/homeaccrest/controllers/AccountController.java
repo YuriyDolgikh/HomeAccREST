@@ -5,11 +5,10 @@ import biz.itehnika.homeaccrest.dto.AccountDTO;
 import biz.itehnika.homeaccrest.exceptions.AppError;
 import biz.itehnika.homeaccrest.models.Account;
 import biz.itehnika.homeaccrest.models.Customer;
+import biz.itehnika.homeaccrest.models.enums.AccountType;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import biz.itehnika.homeaccrest.services.AccountService;
-import biz.itehnika.homeaccrest.services.CurrencyService;
 import biz.itehnika.homeaccrest.services.CustomerService;
-import biz.itehnika.homeaccrest.services.PaymentCategoryService;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -38,9 +37,6 @@ public class AccountController {
 
     public final AccountService accountService;
     public final CustomerService customerService;
-    public final PaymentCategoryService paymentCategoryService;
-    public final CurrencyService currencyService;
- 
     
     @Operation(
         summary = "Get a list of all accounts for the current customer",
@@ -97,8 +93,7 @@ public class AccountController {
         return ResponseEntity.ok().build();
     }
     
-    
-    
+ 
     @Operation(
         summary = "Delete accounts for customer by the accounts id's list",
         description = ""
@@ -176,6 +171,69 @@ public class AccountController {
         }
         accountService.updateAccount(id, accountCreateUpdateDTO);
         return ResponseEntity.ok(null);
+    }
+    
+    
+    @Operation(
+        summary = "Get a list of account types names",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200",
+            description = "OK",
+            content =  @Content(mediaType = "application/json",
+                schema = @Schema(
+                    example = "[" +
+                              "\"CASH\"," +
+                              "\"BANK\"," +
+                              "\"CARD\"," +
+                              "\"OTHER\"" +
+                              "]"))),
+
+        @ApiResponse(responseCode = "401",
+            description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @GetMapping("/accounts/types")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public List<String> accountsTypesList(){
+        List<String> typesList = new ArrayList<>();
+        for (AccountType type : AccountType.values()){
+            typesList.add(type.name());
+        }
+        return typesList;
+    }
+    
+    
+    @Operation(
+        summary = "Get a list of currencies names",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200",
+            description = "OK",
+            content =  @Content(mediaType = "application/json",
+                schema = @Schema(
+                    example = "[" +
+                        "\"UAH\"," +
+                        "\"EUR\"," +
+                        "\"USD\"" +
+                        "]"))),
+       
+        @ApiResponse(responseCode = "401",
+            description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @GetMapping("/accounts/currencies")
+    @PreAuthorize("hasAnyRole('ROLE_USER')")
+    public List<String> currenciesList(){
+        List<String> currNames = new ArrayList<>();
+        for (CurrencyName currencyName : CurrencyName.values()){
+            currNames.add(currencyName.name());
+        }
+        return currNames;
     }
 
 // TODO this method must by done after the Payments controller
