@@ -25,6 +25,7 @@ public class Account {
     private AccountType type;
     @Enumerated(EnumType.STRING)
     private CurrencyName currencyName;
+    private Double balance;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "customer_id")
@@ -33,11 +34,12 @@ public class Account {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "account", orphanRemoval = true)
     private List<Payment> payments = new ArrayList<>();
 
-    public Account(String name, String description, AccountType type, CurrencyName currencyName, Customer customer) {
+    public Account(String name, String description, AccountType type, CurrencyName currencyName, Double balance, Customer customer) {
         this.name = name;
         this.description = description;
         this.type = type;
         this.currencyName = currencyName;
+        this.balance = balance;
         this.customer = customer;
     }
 
@@ -46,6 +48,7 @@ public class Account {
         this.description = accountCreateUpdateDTO.getDescription();
         this.type = accountCreateUpdateDTO.getType();
         this.currencyName = accountCreateUpdateDTO.getCurrencyName();
+        this.balance = accountCreateUpdateDTO.getBalance();
         this.customer = customer;
     }
 }

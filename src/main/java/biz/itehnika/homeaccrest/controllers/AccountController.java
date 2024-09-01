@@ -47,8 +47,8 @@ public class AccountController {
             description = "OK",
             content =  @Content(mediaType = "application/json",
                 schema = @Schema(
-                    example = "[{\"id\":34,\"name\":\"Sparkassa\",\"description\":\"Perfect Red card\",\"type\":\"CARD\",\"currencyName\":\"EUR\"}," +
-                               "{\"id\":895,\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))),
+                    example = "[{\"id\":34,\"name\":\"Sparkassa\",\"description\":\"Perfect Red card\",\"type\":\"CARD\",\"currencyName\":\"EUR\",\"balance\":\"456.27\"}," +
+                               "{\"id\":895,\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\",\"balance\":\"8154.05\"}]"))),
         @ApiResponse(responseCode = "401",
             description = "Unauthorized",
             content = { @Content(mediaType = "application/json") })
@@ -81,7 +81,7 @@ public class AccountController {
                 )
     @PostMapping(value = "/accounts")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
-    public ResponseEntity<?> newAccount(@Parameter(schema = @Schema(example = "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))
+    public ResponseEntity<?> newAccount(@Parameter(schema = @Schema(example = "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\",\"balance\":\"0.00\"}]"))
                                            @RequestBody AccountCreateUpdateDTO accountCreateUpdateDTO, Principal principal) {
 
         Customer customer = customerService.findByEmail(principal.getName());

@@ -16,13 +16,14 @@ public class AccountCreateUpdateDTO {
     private String description;
     private AccountType type;
     private CurrencyName currencyName;
+    private Double balance;
 
 
-    public static AccountCreateUpdateDTO of(String name, String description, AccountType accountType, CurrencyName currencyName){
-        return new AccountCreateUpdateDTO(name, description, accountType, currencyName);
+    public static AccountCreateUpdateDTO of(String name, String description, AccountType accountType, CurrencyName currencyName, Double balance){
+        return new AccountCreateUpdateDTO(name, description, accountType, currencyName, balance);
     }
 
     public static AccountCreateUpdateDTO of(Account account) {
-        return new AccountCreateUpdateDTO(account.getName(), account.getDescription(), account.getType(), account.getCurrencyName());
+        return new AccountCreateUpdateDTO(account.getName(), account.getDescription(), account.getType(), account.getCurrencyName(), account.getBalance());
     }
 }

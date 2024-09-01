@@ -10,9 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 @RequiredArgsConstructor
@@ -47,22 +45,37 @@ public class AccountService {
         return accountRepository.findByNameAndCustomer(name, customer);
     }
 
+//    @Transactional
+//    public Map<Long, Double> getAccountBalancesByCustomer(Customer customer){
+//        Map<Long, Double> balances = new HashMap<>();
+//        List<Account> accounts = getAccountsByCustomer(customer);
+//        for(Account account : accounts){
+//            Double sum = 0.0;
+//            for (Payment payment : account.getPayments()){
+//                if(payment.getDirection()){
+//                    sum += payment.getAmount();
+//                }else{
+//                    sum -= payment.getAmount();
+//                }
+//            }
+//            balances.put(account.getId(), sum);
+//        }
+//        return balances;
+//    }
+//
+    
     @Transactional
-    public Map<Long, Double> getAccountBalancesByCustomer(Customer customer){
-        Map<Long, Double> balances = new HashMap<>();
-        List<Account> accounts = getAccountsByCustomer(customer);
-        for(Account account : accounts){
-            Double sum = 0.0;
-            for (Payment payment : account.getPayments()){
-                if(payment.getDirection()){
-                    sum += payment.getAmount();
-                }else{
-                    sum -= payment.getAmount();
-                }
+    public void updateAccountBalanceInDB(Account account){
+        Double balance = 0.0;
+        for (Payment payment : account.getPayments()){
+            if(payment.getDirection()){
+                balance += payment.getAmount();
+            }else{
+                balance -= payment.getAmount();
             }
-            balances.put(account.getId(), sum);
         }
-        return balances;
+        account.setBalance(balance);
+        accountRepository.save(account);
     }
 
     @Transactional
@@ -83,6 +96,7 @@ public class AccountService {
         return total;
     }
 
+
     @Transactional
     public void addAccount(AccountCreateUpdateDTO accountCreateUpdateDTO, Customer customer){
         Account account = new Account(accountCreateUpdateDTO, customer);
@@ -101,15 +115,6 @@ public class AccountService {
         });
     }
     
-    @Transactional
-    public void deleteAccount(Long id, Customer customer){
-        Optional<Account> account = accountRepository.findById(id);
-        account.ifPresent(u -> {
-            if (u.getCustomer().getId().equals(customer.getId())){
-                accountRepository.deleteById(u.getId());
-            }
-        });
-    }
 
     @Transactional
     public void updateAccount(Long id, AccountCreateUpdateDTO accountCreateUpdateDTO) {
@@ -119,6 +124,7 @@ public class AccountService {
         accountToUpdate.setDescription(accountCreateUpdateDTO.getDescription());
         accountToUpdate.setType(accountCreateUpdateDTO.getType());
         accountToUpdate.setCurrencyName(accountCreateUpdateDTO.getCurrencyName());
+        accountToUpdate.setBalance(accountCreateUpdateDTO.getBalance());
         accountRepository.save(accountToUpdate);
     }
 

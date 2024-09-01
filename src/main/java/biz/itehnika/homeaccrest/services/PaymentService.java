@@ -5,6 +5,7 @@ import biz.itehnika.homeaccrest.dto.CustomerPeriodDTO;
 import biz.itehnika.homeaccrest.dto.PaymentCreateUpdateDTO;
 import biz.itehnika.homeaccrest.models.*;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
+import biz.itehnika.homeaccrest.repos.AccountRepository;
 import biz.itehnika.homeaccrest.repos.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -79,6 +80,7 @@ public class PaymentService {
 
     @Transactional
     public void addPayment(PaymentCreateUpdateDTO paymentCreateUpdateDTO, Customer customer){
+        Account account = accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer);
         Payment payment = new Payment(
                         LocalDateTime.parse(paymentCreateUpdateDTO.getDateTime(), dateTimeFormatter),
                         paymentCreateUpdateDTO.getDirection(),
@@ -88,21 +90,12 @@ public class PaymentService {
                                       .getCurrencyName(),
                         paymentCreateUpdateDTO.getDescription(),
                         paymentCategoryService.getByNameAndCustomer(paymentCreateUpdateDTO.getPaymentCategoryName(), customer),
-                        accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer),
-                                      customer);
+                        account,
+                        customer);
         paymentRepository.save(payment);
+        accountService.updateAccountBalanceInDB(account);
     }
 
-    @Transactional
-    public void deletePayment(Long id, Customer customer) {
-        Optional<Payment> payment = paymentRepository.findById(id);
-        payment.ifPresent(u -> {
-            if (u.getCustomer().getId().equals(customer.getId())){
-                paymentRepository.deleteById(u.getId());
-            }
-        });
-    }
-    
     @Transactional
     public void deletePayments(List<Long> ids, Customer customer) {
         ids.forEach(id -> {
@@ -110,6 +103,8 @@ public class PaymentService {
             payment.ifPresent(u -> {
                 if (u.getCustomer().getId().equals(customer.getId())){
                     paymentRepository.deleteById(u.getId());
+                    Account account = u.getAccount();
+                    accountService.updateAccountBalanceInDB(account); // TODO - have to do that more optimal
                 }
             });
         });
@@ -119,6 +114,8 @@ public class PaymentService {
     public void updatePayment(Long id, PaymentCreateUpdateDTO paymentCreateUpdateDTO) {
         Payment paymentToUpdate = getById(id);
         Customer customer = paymentToUpdate.getCustomer();
+        Account accountBefore = paymentToUpdate.getAccount();
+        Account accountAfter = accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer);
        
         paymentToUpdate.setDateTime(LocalDateTime.parse(paymentCreateUpdateDTO.getDateTime(), dateTimeFormatter));
         paymentToUpdate.setDirection(paymentCreateUpdateDTO.getDirection());
@@ -128,9 +125,12 @@ public class PaymentService {
             .getCurrencyName());
         paymentToUpdate.setDescription(paymentCreateUpdateDTO.getDescription());
         paymentToUpdate.setPaymentCategory(paymentCategoryService.getByNameAndCustomer(paymentCreateUpdateDTO.getPaymentCategoryName(), customer));
-        paymentToUpdate.setAccount(accountService.getAccountByNameAndCustomer(paymentCreateUpdateDTO.getAccountName(), customer));
- 
+        paymentToUpdate.setAccount(accountAfter);
         paymentRepository.save(paymentToUpdate);
+        if (!accountBefore.equals(accountAfter)){
+            accountService.updateAccountBalanceInDB(accountBefore);
+            accountService.updateAccountBalanceInDB(accountAfter);
+        }
     }
 
 
@@ -150,6 +150,8 @@ public class PaymentService {
                                                 currencyNameDst, descriptionDst, paymentCategory, accountDst, customer);
         paymentRepository.save(paymentSrc);
         paymentRepository.save(paymentDst);
+        accountService.updateAccountBalanceInDB(accountSrc);
+        accountService.updateAccountBalanceInDB(accountDst);
     }
 
     @Transactional      //TODO need to do sums round ?
@@ -165,6 +167,8 @@ public class PaymentService {
                 currencyName, descriptionDst, paymentCategory, accountDst, customer);
         paymentRepository.save(paymentSrc);
         paymentRepository.save(paymentDst);
+        accountService.updateAccountBalanceInDB(accountSrc);
+        accountService.updateAccountBalanceInDB(accountDst);
     }
 
     @Transactional(readOnly = true)
