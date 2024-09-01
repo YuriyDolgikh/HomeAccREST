@@ -45,9 +45,7 @@ public class AuthController {
     private final JwtTokenUtils jwtTokenUtils;
     private final AuthenticationManager authenticationManager;
     private final CustomerService customerService;
-    private final CurrencyService currencyService;
     private final InvalidTokenService invalidTokenService;
-    
     
     
     @Value("${jwt.lifetime}")
@@ -81,7 +79,6 @@ public class AuthController {
         } catch (BadCredentialsException e) {
             return new ResponseEntity<>(new AppError("Wrong e-mail or password"), HttpStatus.UNAUTHORIZED);
         }
-        currencyService.addTodayRatesIntoDB();  // TODO - Set rule to actualise exchange rates ( e.g.: every customer firstName || every one hour)
         
         UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
         Customer customer = customerService.findByEmail(authRequest.getEmail());

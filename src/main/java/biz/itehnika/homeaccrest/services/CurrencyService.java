@@ -4,6 +4,8 @@ import biz.itehnika.homeaccrest.dto.CurrencyDTO;
 import biz.itehnika.homeaccrest.models.Currency;
 import biz.itehnika.homeaccrest.models.enums.CurrencyName;
 import biz.itehnika.homeaccrest.repos.CurrencyRepository;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
@@ -13,6 +15,7 @@ import java.util.Arrays;
 import java.util.List;
 
 @Service
+@EnableScheduling
 public class CurrencyService {
 
 
@@ -27,8 +30,9 @@ public class CurrencyService {
         return currencyRepository.existsByDateRate(localDate);
     }
 
+    @Scheduled(cron = "0 0 */2 2-22 * *")
     @Transactional
-    public void addTodayRatesIntoDB(){  //TODO - make this every time when customer do firstName
+    public void addTodayRatesIntoDB(){
         LocalDate localDate = LocalDate.now();
         List<Currency> listTodayRates = currencyRepository.findCurrenciesByDateRate(localDate);
         if (!listTodayRates.isEmpty()){

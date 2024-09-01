@@ -75,7 +75,7 @@ public class CustomerController {
             content = { @Content(mediaType = "application/json") })
     }
     )
-    @DeleteMapping(value = "/customers")     // TODO - ADMIN role required
+    @DeleteMapping(value = "/customers")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<HttpStatus> deleteCustomers(@Parameter(schema = @Schema(example = "[2, 13, 1567]"))
@@ -122,7 +122,7 @@ public class CustomerController {
             content = { @Content(mediaType = "application/json") })
         }
     )
-    @PutMapping(value = "/customers/{id}")     // TODO - update any users from admin page
+    @PutMapping(value = "/customers/{id}")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateCustomer (@PathVariable(value = "id") Long id, @RequestBody CustomerUpdateDTO customerUpdateDTO) {
        

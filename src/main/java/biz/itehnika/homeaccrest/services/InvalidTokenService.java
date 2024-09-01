@@ -4,6 +4,8 @@ import biz.itehnika.homeaccrest.dto.InvalidTokenDTO;
 import biz.itehnika.homeaccrest.models.InvalidToken;
 import biz.itehnika.homeaccrest.repos.InvalidTokenRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -12,6 +14,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@EnableScheduling
 public class InvalidTokenService {
     private final InvalidTokenRepository invalidTokenRepository;
 
@@ -26,6 +29,7 @@ public class InvalidTokenService {
         invalidTokenRepository.save(new InvalidToken(null, invalidTokenDTO.getToken(), invalidTokenDTO.getValidDateTime()));
     }
     
+    @Scheduled(cron = "0 0 * * * *")
     @Transactional
     public void cleanTokensWithInvalidDate(){
         List<InvalidToken> invalidTokens = invalidTokenRepository.findAll();
