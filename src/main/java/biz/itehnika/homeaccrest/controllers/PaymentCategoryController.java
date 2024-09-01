@@ -51,7 +51,7 @@ public class PaymentCategoryController {
             content = { @Content(mediaType = "application/json") })
         }
     )
-    @GetMapping("/сategories")
+    @GetMapping("/categories")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<?> categoriesList(Principal principal){
         Customer customer = customerService.findByEmail(principal.getName());
@@ -72,7 +72,7 @@ public class PaymentCategoryController {
                 schema = @Schema(implementation = AppError.class)) })
         }
     )
-    @PostMapping(value = "/categories/new")
+    @PostMapping(value = "/categories")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     public ResponseEntity<?> newCategory(@Parameter(schema = @Schema(example = "{\"name\":\"HEALTH\",\"description\":\"Medicines, clinics, food additives ...\"}"))
                                          @RequestBody PaymentCategoryCreateUpdateDTO paymentCategoryCreateUpdateDTO, Principal principal) {
@@ -89,7 +89,7 @@ public class PaymentCategoryController {
     
     
     @Operation(
-        summary = "Delete payment categories for customer by the accounts id's list",
+        summary = "Delete payment categories for customer by the categories id's list",
         description = ""
     )
     @ApiResponses(value = {
@@ -99,7 +99,7 @@ public class PaymentCategoryController {
             content = { @Content(mediaType = "application/json") })
         }
     )
-    @PostMapping(value = "/categories/delete")
+    @DeleteMapping(value = "/categories")
     @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<Void> deleteCategories(@Parameter(schema = @Schema(example = "[56, 95, 134]"))
@@ -113,26 +113,26 @@ public class PaymentCategoryController {
     
     
     
-    @Operation(
-        summary = "Delete payment category by the category id",
-        description = ""
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "OK",
-            content = { @Content(mediaType = "application/json")}),
-        @ApiResponse(responseCode = "401", description = "Unauthorized",
-            content = { @Content(mediaType = "application/json") })
-        }
-    )
-    @DeleteMapping(value = "/categories/delete/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id , Principal principal) {
-        Customer customer = customerService.findByEmail(principal.getName());
-        if (id != null) {
-            paymentCategoryService.deletePaymentCategory(id, customer);
-        }
-        return ResponseEntity.ok().build();
-    }
+//    @Operation(
+//        summary = "Delete payment category by the category id",
+//        description = ""
+//    )
+//    @ApiResponses(value = {
+//        @ApiResponse(responseCode = "200", description = "OK",
+//            content = { @Content(mediaType = "application/json")}),
+//        @ApiResponse(responseCode = "401", description = "Unauthorized",
+//            content = { @Content(mediaType = "application/json") })
+//        }
+//    )
+//    @DeleteMapping(value = "/categories/delete/{id}")
+//    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+//    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id , Principal principal) {
+//        Customer customer = customerService.findByEmail(principal.getName());
+//        if (id != null) {
+//            paymentCategoryService.deletePaymentCategory(id, customer);
+//        }
+//        return ResponseEntity.ok().build();
+//    }
     
     
     
@@ -150,9 +150,9 @@ public class PaymentCategoryController {
             content = { @Content(mediaType = "application/json") })
     }
     )
-    @PutMapping("/categories/update/{id}")
+    @PutMapping("/categories/{id}")
     @PreAuthorize("hasAnyRole('ROLE_USER','ROLE_ADMIN')")
-    public ResponseEntity<?> updateCategiry (@PathVariable(value = "id") Long id,
+    public ResponseEntity<?> updateCategory (@PathVariable(value = "id") Long id,
                                              @RequestBody PaymentCategoryCreateUpdateDTO categoryCreateUpdateDTO, Principal principal) {
         Customer customer = customerService.findByEmail(principal.getName());
         if(!paymentCategoryService.existsById(id)){

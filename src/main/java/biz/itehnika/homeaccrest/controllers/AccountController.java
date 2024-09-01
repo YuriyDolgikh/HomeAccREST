@@ -79,7 +79,7 @@ public class AccountController {
                 schema = @Schema(implementation = AppError.class)) })
                           }
                 )
-    @PostMapping(value = "/accounts/new")
+    @PostMapping(value = "/accounts")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<?> newAccount(@Parameter(schema = @Schema(example = "{\"name\":\"To travel\",\"description\":\"Simply Cash\",\"type\":\"CASH\",\"currencyName\":\"UAH\"}]"))
                                            @RequestBody AccountCreateUpdateDTO accountCreateUpdateDTO, Principal principal) {
@@ -105,7 +105,7 @@ public class AccountController {
             content = { @Content(mediaType = "application/json") })
     }
     )
-    @PostMapping(value = "/accounts/delete")
+    @DeleteMapping(value = "/accounts")
     @PreAuthorize("hasRole('ROLE_USER')")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<HttpStatus> deleteAccounts(@Parameter(schema = @Schema(example = "[12, 133, 13457]"))
@@ -118,26 +118,26 @@ public class AccountController {
     }
     
     
-    @Operation(
-        summary = "Delete account by the account id",
-        description = ""
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "OK",
-            content = { @Content(mediaType = "application/json")}),
-        @ApiResponse(responseCode = "401", description = "Unauthorized",
-            content = { @Content(mediaType = "application/json") })
-    }
-    )
-    @DeleteMapping(value = "/accounts/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_USER')")
-    public ResponseEntity<HttpStatus> deleteAccount(@PathVariable("id") Long id , Principal principal) {
-        Customer customer = customerService.findByEmail(principal.getName());
-        if (id != null) {
-            accountService.deleteAccount(id, customer);
-        }
-        return ResponseEntity.ok().build();
-    }
+//    @Operation( TODO - to delete - probably
+//        summary = "Delete account by the account id",
+//        description = ""
+//    )
+//    @ApiResponses(value = {
+//        @ApiResponse(responseCode = "200", description = "OK",
+//            content = { @Content(mediaType = "application/json")}),
+//        @ApiResponse(responseCode = "401", description = "Unauthorized",
+//            content = { @Content(mediaType = "application/json") })
+//    }
+//    )
+//    @DeleteMapping(value = "/accounts/delete/{id}")
+//    @PreAuthorize("hasRole('ROLE_USER')")
+//    public ResponseEntity<HttpStatus> deleteAccount(@PathVariable("id") Long id , Principal principal) {
+//        Customer customer = customerService.findByEmail(principal.getName());
+//        if (id != null) {
+//            accountService.deleteAccount(id, customer);
+//        }
+//        return ResponseEntity.ok().build();
+//    }
     
     
     @Operation(
@@ -154,7 +154,7 @@ public class AccountController {
             content = { @Content(mediaType = "application/json") })
     }
     )
-    @PutMapping(value = "/accounts/update/{id}")
+    @PutMapping(value = "/accounts/{id}") // TODO - review request
     @PreAuthorize("hasRole('ROLE_USER')")
     public ResponseEntity<?> updateAccount (@PathVariable(value = "id") Long id,
                                             @RequestBody AccountCreateUpdateDTO accountCreateUpdateDTO, Principal principal) {

@@ -53,7 +53,7 @@ public class CustomerController {
                      content = { @Content(mediaType = "application/json") })
         }
     )
-    @GetMapping("/admin/customers")
+    @GetMapping("/customers")
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public List<CustomerDTO> customersList(){
         List<CustomerDTO> customerDTOList = new ArrayList<>();
@@ -75,7 +75,7 @@ public class CustomerController {
             content = { @Content(mediaType = "application/json") })
     }
     )
-    @PostMapping(value = "/admin/delete")     // TODO - ADMIN role required
+    @DeleteMapping(value = "/customers")     // TODO - ADMIN role required
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<HttpStatus> deleteCustomers(@Parameter(schema = @Schema(example = "[2, 13, 1567]"))
@@ -87,25 +87,25 @@ public class CustomerController {
     }
     
     
-    @Operation(
-        summary = "Delete customer by the id",
-        description = "Customer with ADMIN role cannot be deleted"
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "OK",
-            content = { @Content(mediaType = "application/json")}),
-        @ApiResponse(responseCode = "401", description = "Unauthorized",
-            content = { @Content(mediaType = "application/json") })
-    }
-    )
-    @DeleteMapping(value = "/admin/delete/{id}")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") Long id) {
-        if (id != null) {
-            customerService.deleteCustomer(id);
-        }
-        return ResponseEntity.ok().build();
-    }
+//    @Operation(
+//        summary = "Delete customer by the id",
+//        description = "Customer with ADMIN role cannot be deleted"
+//    )
+//    @ApiResponses(value = {
+//        @ApiResponse(responseCode = "200", description = "OK",
+//            content = { @Content(mediaType = "application/json")}),
+//        @ApiResponse(responseCode = "401", description = "Unauthorized",
+//            content = { @Content(mediaType = "application/json") })
+//    }
+//    )
+//    @DeleteMapping(value = "/admin/delete/{id}")
+//    @PreAuthorize("hasRole('ROLE_ADMIN')")
+//    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") Long id) {
+//        if (id != null) {
+//            customerService.deleteCustomer(id);
+//        }
+//        return ResponseEntity.ok().build();
+//    }
     
     
     @Operation(
@@ -122,7 +122,7 @@ public class CustomerController {
             content = { @Content(mediaType = "application/json") })
         }
     )
-    @PutMapping(value = "/admin/update/{id}")     // TODO - update any users from admin page
+    @PutMapping(value = "/customers/{id}")     // TODO - update any users from admin page
     @PreAuthorize("hasRole('ROLE_ADMIN')")
     public ResponseEntity<?> updateCustomer (@PathVariable(value = "id") Long id, @RequestBody CustomerUpdateDTO customerUpdateDTO) {
        

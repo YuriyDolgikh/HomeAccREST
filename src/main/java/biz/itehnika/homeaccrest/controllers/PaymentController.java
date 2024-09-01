@@ -98,7 +98,7 @@ public class PaymentController {
                 schema = @Schema(implementation = AppError.class)) })
     }
     )
-    @PostMapping(value = "/payments/new")
+    @PostMapping(value = "/payments")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<?> newPayment(@Parameter(schema = @Schema(example = "{\"dateTime\":\"23-07-2024 09:30\"," +
                                                                                "\"direction\":false," +
@@ -135,7 +135,7 @@ public class PaymentController {
             content = { @Content(mediaType = "application/json") })
     }
     )
-    @PostMapping(value = "/payments/delete")
+    @DeleteMapping(value = "/payments")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     @JsonFormat(with = JsonFormat.Feature.ACCEPT_SINGLE_VALUE_AS_ARRAY)
     public ResponseEntity<Void> deletePayments(@Parameter(schema = @Schema(example = "[56, 95, 134]"))
@@ -147,26 +147,26 @@ public class PaymentController {
         return ResponseEntity.ok().build();
     }
 
-    @Operation(
-        summary = "Delete payment by the payment id",
-        description = ""
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "OK",
-            content = { @Content(mediaType = "application/json")}),
-        @ApiResponse(responseCode = "401", description = "Unauthorized",
-            content = { @Content(mediaType = "application/json") })
-    }
-    )
-    @DeleteMapping(value = "/payments/delete/{id}")
-    @PreAuthorize("hasAnyRole('ROLE_USER')")
-    public ResponseEntity<Void> deletePayment(@PathVariable("id") Long id , Principal principal) {
-        Customer customer = customerService.findByEmail(principal.getName());
-        if (id != null) {
-            paymentService.deletePayment(id, customer);
-        }
-        return ResponseEntity.ok().build();
-    }
+//    @Operation(
+//        summary = "Delete payment by the payment id",
+//        description = ""
+//    )
+//    @ApiResponses(value = {
+//        @ApiResponse(responseCode = "200", description = "OK",
+//            content = { @Content(mediaType = "application/json")}),
+//        @ApiResponse(responseCode = "401", description = "Unauthorized",
+//            content = { @Content(mediaType = "application/json") })
+//    }
+//    )
+//    @DeleteMapping(value = "/payments/delete/{id}")
+//    @PreAuthorize("hasAnyRole('ROLE_USER')")
+//    public ResponseEntity<Void> deletePayment(@PathVariable("id") Long id , Principal principal) {
+//        Customer customer = customerService.findByEmail(principal.getName());
+//        if (id != null) {
+//            paymentService.deletePayment(id, customer);
+//        }
+//        return ResponseEntity.ok().build();
+//    }
     
     
     @Operation(
@@ -183,7 +183,7 @@ public class PaymentController {
             content = { @Content(mediaType = "application/json") })
     }
     )
-    @PutMapping("/payments/update/{id}")
+    @PutMapping("/payments/{id}")
     @PreAuthorize("hasAnyRole('ROLE_USER')")
     public ResponseEntity<?> updatePayment(@PathVariable(value = "id") Long id,
                                            @Parameter(schema = @Schema(example = "{\"dateTime\":\"23-07-2024 09:30\"," +
