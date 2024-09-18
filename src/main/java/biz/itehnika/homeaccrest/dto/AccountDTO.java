@@ -17,13 +17,14 @@ public class AccountDTO {
     private String description;
     private AccountType type;
     private CurrencyName currencyName;
+    private Double balance;
 
 
-    public static AccountDTO of(Long id, String name, String description, AccountType accountType, CurrencyName currencyName){
-        return new AccountDTO(id, name, description, accountType, currencyName);
+    public static AccountDTO of(Long id, String name, String description, AccountType accountType, CurrencyName currencyName, Double balance){
+        return new AccountDTO(id, name, description, accountType, currencyName, balance);
     }
 
     public static AccountDTO of(Account account) {
-        return new AccountDTO(account.getId(), account.getName(), account.getDescription(), account.getType(), account.getCurrencyName());
+        return new AccountDTO(account.getId(), account.getName(), account.getDescription(), account.getType(), account.getCurrencyName(), account.getBalance());
     }
 }

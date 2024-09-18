@@ -46,8 +46,8 @@ public class CustomerController {
                      description = "OK",
                      content =  @Content(mediaType = "application/json",
                                          schema = @Schema(
-                                            example = "[{\"id\":1,\"firstName\":\"admin\",\"email\":\"admin@example.com\"}," +
-                                                       "{\"id\":2,\"firstName\":\"testUser\",\"email\":\"user@example.com\"}]"))),
+                                            example = "[{\"id\":1,\"email\":\"admin@example.com\",\"firstName\":\"adminFirst\",\"lastName\":\"adminLast\"}," +
+                                                       "{\"id\":27,\"email\":\"user@example.com\",\"firstName\":\"userFirst\",\"lastName\":\"userLast\"}]"))),
         @ApiResponse(responseCode = "401",
                      description = "Unauthorized",
                      content = { @Content(mediaType = "application/json") })
@@ -85,28 +85,6 @@ public class CustomerController {
         }
         return new ResponseEntity<>(HttpStatus.OK);
     }
-    
-    
-//    @Operation(
-//        summary = "Delete customer by the id",
-//        description = "Customer with ADMIN role cannot be deleted"
-//    )
-//    @ApiResponses(value = {
-//        @ApiResponse(responseCode = "200", description = "OK",
-//            content = { @Content(mediaType = "application/json")}),
-//        @ApiResponse(responseCode = "401", description = "Unauthorized",
-//            content = { @Content(mediaType = "application/json") })
-//    }
-//    )
-//    @DeleteMapping(value = "/admin/delete/{id}")
-//    @PreAuthorize("hasRole('ROLE_ADMIN')")
-//    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") Long id) {
-//        if (id != null) {
-//            customerService.deleteCustomer(id);
-//        }
-//        return ResponseEntity.ok().build();
-//    }
-    
     
     @Operation(
         summary = "Update Customer",

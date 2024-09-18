@@ -3,7 +3,6 @@ package biz.itehnika.homeaccrest.controllers;
 import biz.itehnika.homeaccrest.dto.*;
 import biz.itehnika.homeaccrest.exceptions.AppError;
 import biz.itehnika.homeaccrest.models.Customer;
-import biz.itehnika.homeaccrest.services.CurrencyService;
 import biz.itehnika.homeaccrest.services.CustomerService;
 import biz.itehnika.homeaccrest.services.InvalidTokenService;
 import biz.itehnika.homeaccrest.services.UserDetailsServiceImpl;
@@ -22,6 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -32,6 +32,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.security.auth.login.LoginException;
+import java.security.Principal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 
@@ -60,7 +61,7 @@ public class AuthController {
             content = { @Content(mediaType = "application/json",
                 schema = @Schema(
                         example = "{" +
-                                      "\"user\":{\"firstName\":\"John\",\"lastName\":\"Doe\"},"+
+                                      "\"user\":{\"id\":42,\"email\":\"john@example.com\",\"firstName\":\"John\",\"lastName\":\"Doe\"},"+
                                     "\"token\":\"eyJhbGciOiJIUzI1NiJ9.eyJyb2xlcyI6WyJST0xFX0FETUlOIl0sInN1YiI6ImFkbWluIiwiaWF0IjoxNzIwMjQ1NDg3LCJleHAiOjE3MjAyNTA4ODd9.6tQPCbF35tfDiIxXlx5lcsBai1irxdbqzyzg2mVzlKQ\"" +
                                   "}"
                 )) }),
@@ -83,7 +84,7 @@ public class AuthController {
         UserDetails userDetails = userDetailsService.loadUserByUsername(authRequest.getEmail());
         Customer customer = customerService.findByEmail(authRequest.getEmail());
         String token = jwtTokenUtils.generateToken(userDetails);
-        CustomerNamesDTO user = new CustomerNamesDTO(customer.getFirstName(), customer.getLastName());
+        CustomerDTO user = new CustomerDTO(customer.getId(), customer.getEmail(), customer.getFirstName(), customer.getLastName());
         return ResponseEntity.ok(new JwtResponseDTO(user, token));
     }
     
@@ -149,6 +150,27 @@ public class AuthController {
   
         return ResponseEntity.ok().build();
     }
-  
+    
+    @Operation(
+        summary = "Get current customer",
+        description = ""
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200",
+            description = "OK",
+            content =  @Content(mediaType = "application/json",
+                schema = @Schema(
+                    example = "{\"id\":78,\"email\":\"john@example.com\",\"firstName\":\"John\",\"lastName\":\"Doe\"}"))),
+        @ApiResponse(responseCode = "401",
+            description = "Unauthorized",
+            content = { @Content(mediaType = "application/json") })
+    }
+    )
+    @GetMapping("/auth/current")
+    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
+    public CustomerDTO getCurrentCustomer(Principal principal){
+        Customer customer = customerService.findByEmail(principal.getName());
+        return CustomerDTO.of(customer);
+    }
    
 }

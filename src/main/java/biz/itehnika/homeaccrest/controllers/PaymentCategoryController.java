@@ -111,31 +111,7 @@ public class PaymentCategoryController {
         return ResponseEntity.ok().build();
     }
     
-    
-    
-//    @Operation(
-//        summary = "Delete payment category by the category id",
-//        description = ""
-//    )
-//    @ApiResponses(value = {
-//        @ApiResponse(responseCode = "200", description = "OK",
-//            content = { @Content(mediaType = "application/json")}),
-//        @ApiResponse(responseCode = "401", description = "Unauthorized",
-//            content = { @Content(mediaType = "application/json") })
-//        }
-//    )
-//    @DeleteMapping(value = "/categories/delete/{id}")
-//    @PreAuthorize("hasAnyRole('ROLE_ADMIN', 'ROLE_USER')")
-//    public ResponseEntity<Void> deleteCategory(@PathVariable("id") Long id , Principal principal) {
-//        Customer customer = customerService.findByEmail(principal.getName());
-//        if (id != null) {
-//            paymentCategoryService.deletePaymentCategory(id, customer);
-//        }
-//        return ResponseEntity.ok().build();
-//    }
-    
-    
-    
+   
     @Operation(
         summary = "Update payment category by ID",
         description = ""
@@ -168,7 +144,6 @@ public class PaymentCategoryController {
         paymentCategoryService.updatePaymentCategory(id, categoryCreateUpdateDTO);
         return ResponseEntity.ok().build();
     }
-    
     
     
     @Operation(
