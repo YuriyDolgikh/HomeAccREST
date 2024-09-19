@@ -31,6 +31,7 @@ import java.util.List;
 @Tag(name = "Customer activity", description = "Customer operations are available with administrator rights (except Filters and Settings)")
 @Slf4j
 @RestController
+@CrossOrigin
 @RequiredArgsConstructor
 public class CustomerController {
     private final CustomerService customerService;

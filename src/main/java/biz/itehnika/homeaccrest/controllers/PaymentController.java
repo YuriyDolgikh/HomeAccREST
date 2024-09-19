@@ -30,6 +30,7 @@ import java.util.List;
      description = "All Payments operations are available for customer in context with USERs role")
 @Slf4j
 @RestController
+@CrossOrigin
 @RequiredArgsConstructor
 public class PaymentController {
     public final PaymentService paymentService;

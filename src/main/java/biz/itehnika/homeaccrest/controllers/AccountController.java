@@ -32,6 +32,7 @@ import java.util.List;
      description = "All Accounts operations are available for customer in context with USERs role")
 @Slf4j
 @RestController
+@CrossOrigin
 @RequiredArgsConstructor
 public class AccountController {
 
