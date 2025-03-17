@@ -6,7 +6,6 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 
@@ -47,13 +46,13 @@ public class Customer {
     private Boolean isScheduled;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer", orphanRemoval = true)
-    private List<PaymentCategory> paymentCategories = new ArrayList<>();
+    private List<PaymentCategory> paymentCategories;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer", orphanRemoval = true)
-    private List<Account> accounts = new ArrayList<>();
+    private List<Account> accounts;
 
     @OneToMany(cascade = CascadeType.ALL, mappedBy = "customer", orphanRemoval = true)
-    private List<Payment> payments = new ArrayList<>();
+    private List<Payment> payments;
     
     public Customer(String email, String password, String firstName, String lastName, CustomerRole role, String phone, String address) {
         this.email = email;
